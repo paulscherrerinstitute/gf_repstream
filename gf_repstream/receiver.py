@@ -10,19 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class Receiver:
-    def __init__(self, on_receive=None, buffer_size=1):
+    def __init__(self, deque):
         """Initialize a gigafrost receiver.
 
         Args:
-            on_receive (function, optional): Execute function with each received metadata and image
-                as input arguments. Defaults to None.
-            buffer_size (int, optional): A number of last received zmq messages to keep in memory.
-                Defaults to 1.
+            deque (double ended queue): Queue of received zmq packets
         """
-        self.buffer = deque(maxlen=buffer_size)
-        self.state = "polling"
-        self.on_receive = on_receive
-        print("init receiver")
+        self._deque = deque
 
     def start(self, io_threads, connection_mode, address):
         """Start the receiver loop.
@@ -34,7 +28,10 @@ class Receiver:
 
         Raises:
             RuntimeError: Unknown connection mode.
+            RuntimeError: Unknown metadata format.
         """
+        logger.debug(f'GF_repstream.Receiver class with: io_threads {io_threads}, connection_mode {connection_mode} and address {address}')
+
         zmq_context = zmq.Context(io_threads=io_threads)
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")  # pylint: disable=E1101
@@ -46,36 +43,21 @@ class Receiver:
         else:
             raise RuntimeError("Unknown connection mode {connection_mode}")
 
-        # poller = zmq.Poller()
-        # poller.register(zmq_socket, zmq.POLLIN)
-
         while True:
-            # events = dict(poller.poll(1000))
-            # if zmq_socket not in events:
-            #     self.state = "polling"
-            #     print('zmq socket not in events')
-            #     continue
-
-            time_poll = datetime.now()
-            # metadata = zmq_socket.recv_json(flags=0)
-            metadata = zmq_socket.recv_multipart()
-            print(json.loads(metadata[0].decode()))
-            # image = zmq_socket.recv(flags=0, copy=False, track=False)
-            # metadata["time_poll"] = time_poll
-            # metadata["time_recv"] = datetime.now() - time_poll
-
-            # dtype = metadata.get("type")
-            # shape = metadata.get("shape")
-            # if dtype is None or shape is None:
-            #     logger.error("Cannot find 'type' and/or 'shape' in received metadata")
-            #     continue
-
-            # image = np.frombuffer(image.buffer, dtype=dtype).reshape(shape)
-
-
-            self.state = "receiving"
-
-            # if some treatment on the data is necessary
-            # if self.on_receive is not None:
-            #     self.on_receive(metadata, image)
-
+            # receives the data
+            data = zmq_socket.recv_multipart()
+            # json metadata
+            metadata = json.loads(data[0].decode())
+            # basic verification of the metadata
+            dtype = metadata.get("type")
+            shape = metadata.get("shape")
+            source = metadata.get("source")
+            # print(dtype,shape)
+            if dtype is None or shape is None or source != 'gigafrost':
+                logger.error("Cannot find 'type' and/or 'shape' and/or 'source' in received metadata")
+                raise RuntimeError("Metadata problem...")
+            # appends the received message to the global Deque
+            self._deque.append(data)
+            # print(f'Deque size after appending: {len(self._deque)}')
+            logger.debug(f'Deque size after appending: {len(self._deque)}')
+                
