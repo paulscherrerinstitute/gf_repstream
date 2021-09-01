@@ -1,0 +1,33 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: gf_repstream
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  entry_points:
+    - gf_repstream = gf_repstream.cli:main
+
+requirements:
+  build:
+    - python {{ python }}
+    - setuptools
+  run:
+    - python {{ python }}
+    - pyzmq
+
+test:
+  source_files:
+      - tests
+  requires:
+      - pytest
+
+about:
+  home: https://git.psi.ch/hax_l/gf_repstream
+  summary: {{ data['description'] }}
+  license: GNU GPLv3
+  license_file: LICENSE
