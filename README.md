@@ -18,24 +18,30 @@ This is a tool to receive an incoming ZMQ stream, treat it (optional), and strea
 <!-- USAGE EXAMPLES -->
 ## Usage
 ```bash
-    usage: gf_repstream [-h] [-v] [--in-address PROTOCOL://HOST:PORT] [--out-address PROTOCOL://HOST:PORT] [--in-connection-mode {connect,bind}]
-                        [--out-connection-mode {connect,bind}] [--io-threads IO_THREADS] [--buffer-size BUFFER_SIZE]
+    usage: gf_repstream [-h] [-v] [--in-address PROTOCOL://HOST:PORT] [--out-init-port PROTOCOL://HOST:PORT] [--io-threads IO_THREADS] [--buffer-size BUFFER_SIZE] [--n-output-streams N_OUTPUT_STREAMS]
+                        [--send-every-nth SEND_EVERY_NTH [SEND_EVERY_NTH ...]]
 
     optional arguments:
     -h, --help            show this help message and exit
-    -v, --version         show program's version number and exit
+    -v, --version         show version number and exit
     --in-address PROTOCOL://HOST:PORT
                             an address string for zmq socket (default: tcp://xbl-daq-23:9990)
-    --out-address PROTOCOL://HOST:PORT
-                            an address string for zmq socket (default: tcp://*:9610)
-    --in-connection-mode {connect,bind}
-                            whether to bind a socket to an address or connect to a remote socket with an address (default: connect)
-    --out-connection-mode {connect,bind}
-                            whether to bind a socket to an address or connect to a remote socket with an address (default: bind)
+    --out-init-port PROTOCOL://HOST:PORT
+                            the initial port for the output streams (increased by 1 for every other stream) (default: 9610)
     --io-threads IO_THREADS
                             the size of the zmq thread pool to handle I/O operations (default: 1)
     --buffer-size BUFFER_SIZE
-                            a number of last received zmq messages to keep in memory (default: 2000)
+                            a number of last received zmq messages to keep in memory (default: 100)
+    --n-output-streams N_OUTPUT_STREAMS
+                            number of output streams to be generated (default: 0)
+    --send-every-nth SEND_EVERY_NTH [SEND_EVERY_NTH ...]
+                            list containing the frequency of each output stream to be generated (default: None)
+```
+
+example:
+
+```bash
+    python -m gf_repstream.cli --in-address tcp://localhost:9609 --out-init-port 9610 --n-outputs 3 --send-every-nth 1 2 10
 ```
 
 <!-- LICENSE -->
@@ -46,10 +52,11 @@ See `LICENSE` for more information.
 
 ## Authors
 
-* [Leonardo Hax Damiani](leonardo.hax@psi.ch)
-* [Andrej Babic](andrej.babic@psi.ch)
-* [Christian Schlepuetz](christian.schlepuetz@psi.ch)
-* [Federica Marone](federica.marine@psi.ch)
+* Leonardo Hax Damiani (leonardo.hax@psi.ch)
+* Christian Schlepuetz (christian.schlepuetz@psi.ch)
+
+
+
 
 
 
