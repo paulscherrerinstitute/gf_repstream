@@ -7,7 +7,11 @@ import subprocess
 
 
 def main():
-    branch = subprocess.check_output("git rev-parse --abbrev-ref HEAD", shell=True).decode().strip()
+    branch = (
+        subprocess.check_output("git rev-parse --abbrev-ref HEAD", shell=True)
+        .decode()
+        .strip()
+    )
     if branch != "master":
         print("Aborting, not on 'master' branch.")
         return
@@ -37,7 +41,11 @@ def main():
     new_version = f"{major}.{minor}.{patch}"
 
     with open(filepath, "w") as f:
-        f.write(re.sub(r'__version__ = "(.*?)"', f'__version__ = "{new_version}"', file_content))
+        f.write(
+            re.sub(
+                r'__version__ = "(.*?)"', f'__version__ = "{new_version}"', file_content
+            )
+        )
 
     os.system(f"git commit {filepath} -m 'Updating for version {new_version}'")
     os.system(f"git tag -a {new_version} -m 'Release {new_version}'")
