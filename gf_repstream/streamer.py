@@ -1,12 +1,15 @@
+#!/usr/bin/env python
 import json
 import logging
 import time
 import zmq
 
+from gf_repstream.protocol import TestMetadata
+
 logger = logging.getLogger(__name__)
 
 class Streamer:
-    def __init__(self, name, deque, sentinel, idle_time=1):
+    def __init__(self, name, deque, sentinel, mode, idle_time=1):
         """Initialize a gigafrost streamer.
 
         Args:
@@ -19,8 +22,13 @@ class Streamer:
         self._deque = deque
         self._idle_time = idle_time
         self._last_sent_frame = -1
-        self._counter = 1
+        self._counter = 0
         self._sentinel = sentinel
+        self._mode = mode
+
+    def _stop(self):
+        self.join()
+
 
     def start(self, io_threads, address):
         """Start the streamer loop.
@@ -37,24 +45,24 @@ class Streamer:
 
         # prepares the zmq socket to send out data PUB/SUB (bind)
         zmq_context = zmq.Context(io_threads=io_threads)
-        zmq_socket = zmq_context.socket(zmq.PUB)
+        zmq_socket = zmq_context.socket(self._mode)
         zmq_socket.bind(address)
-
-        while self._sentinel is not None:
-            if len(self._deque) != 0:
+        zmq_socket.setsockopt(zmq.LINGER, -1)
+        
+        while not self._sentinel.is_set():
+            if self._deque:
                 # peek without removing the data from the queue
-                data = self._deque.pop()
-                # gets the image_frame
-                image_frame = json.loads(data[0].decode()).get("frame")
-                # verifies if it's repeated
-                if self._last_sent_frame != image_frame:
-                    self._counter += 1
-                    self._last_sent_frame = image_frame
-                    logger.debug(
-                        f"{self._name} streamer send out image: {image_frame} (counter {self._counter})"
-                    )
-                    zmq_socket.send_multipart(data)
+                data = self._deque.popleft()
+                # binary metadata converted            
+                image_frame = TestMetadata.from_buffer_copy(data[0]).as_dict().get('frame')
+                self._counter += 1
+                logger.debug(
+                    f"{self._name} streamer send out image: {image_frame} (counter {self._counter})"
+                )
+                zmq_socket.send_multipart(data)
             else:
                 # nothing to stream
                 time.sleep(self._idle_time)
         logger.debug(f"End signal received... finishing streamer thread...")
+        self._stop()
+        

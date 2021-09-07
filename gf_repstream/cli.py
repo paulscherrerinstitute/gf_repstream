@@ -1,10 +1,12 @@
+#!/usr/bin/env python
 import argparse
 import logging
 import os
+import zmq
 import sys
 from collections import deque
 from functools import partial
-from threading import Thread
+from threading import Thread, Event
 from time import sleep
 
 from gf_repstream import __version__
@@ -13,8 +15,14 @@ from gf_repstream.streamer import Streamer
 
 Log_Format = "%(levelname)s %(asctime)s - %(message)s"
 
-logging.basicConfig(format=Log_Format, level=logging.ERROR, stream=sys.stdout)
+logging.basicConfig(format=Log_Format, 
+                    filename='gf_repstream.log', 
+                    filemode="w",
+                    level=logging.DEBUG)
+
 logger = logging.getLogger(__name__)
+
+exit_event = Event()
 
 
 def main():
@@ -78,8 +86,6 @@ def main():
 
     args = parser.parse_args()
 
-    _sentinel = object()
-
     q_list = []
     streamer_list = []
     receiver_tuples = []
@@ -94,16 +100,20 @@ def main():
         )
 
     for i in range(args.n_output_streams):
+        mode = zmq.PUB
+        # writer is the first streamer thread and works with PUSH/PULL
+        if i == 0:
+            mode = zmq.PUSH
         # deque for each output stream
         q_list.append(deque(maxlen=args.buffer_size))
         # stramer outputs the replicated zmq stream
         streamer_list.append(
-            Streamer(name=f"output_{i}", deque=q_list[-1], sentinel=_sentinel)
+            Streamer(name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, mode=mode)
         )
         receiver_tuples.append((q_list[-1], args.send_every_nth[i]))
 
     # Receiver object with the streamer and their queues
-    receiver = Receiver(tuples_list=receiver_tuples, sentinel=_sentinel)
+    receiver = Receiver(tuples_list=receiver_tuples, sentinel=exit_event)
 
     # Prepares receiver thread
     start_receiver = partial(receiver.start, args.io_threads, args.in_address)
@@ -123,19 +133,16 @@ def main():
     for i in range(args.n_output_streams):
         list_threads[i].start()
 
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        _sentinel = None
-        sleep(1)
-        logger.info("^C pressed... halting execution of gf_repstream")
 
-    # finishes the application
-    r.join()
-    for i in range(args.n_output):
-        list_threads[i].join()
+    while not exit_event.is_set():
+        try:
+            sleep(0.1)
+        except KeyboardInterrupt:
+            logger.debug("^C pressed... halting execution of gf_repstream")
+            exit_event.set()
 
+    sleep(1)
+    logger.debug("CLI finishing...")
 
 if __name__ == "__main__":
     main()

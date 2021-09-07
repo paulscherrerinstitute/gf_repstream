@@ -1,10 +1,10 @@
-import json
+#!/usr/bin/env python
 import logging
-
 import zmq
 
-logger = logging.getLogger(__name__)
+from gf_repstream.protocol import TestMetadata
 
+logger = logging.getLogger(__name__)
 
 class Receiver:
     def __init__(self, tuples_list, sentinel):
@@ -17,6 +17,15 @@ class Receiver:
         """
         self._streamer_tuples = tuples_list
         self._sentinel = sentinel
+
+    def _decode_metadata(self, metadata):
+        source = metadata.get("source")
+        if source == 0:
+            metadata['source'] = 'gigafrost'
+        return metadata
+
+    def _stop(self):
+        self.join()
 
     def start(self, io_threads, address):
         """Start the receiver loop.
@@ -38,24 +47,29 @@ class Receiver:
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
         zmq_socket.connect(address)
 
-        while self._sentinel is not None:
+        while not self._sentinel.is_set():
             # receives the data
             data = zmq_socket.recv_multipart()
-            # json metadata
-            metadata = json.loads(data[0].decode())
+            # binary metadata converted            
+            metadata = self._decode_metadata(TestMetadata.from_buffer_copy(data[0]).as_dict())
+
             # basic verification of the metadata
             dtype = metadata.get("type")
             shape = metadata.get("shape")
             source = metadata.get("source")
-            image_id = metadata.get("frame")
+            image_frame = metadata.get("frame")
             if dtype is None or shape is None or source != "gigafrost":
                 logger.error(
                     "Cannot find 'type' and/or 'shape' and/or 'source' in received metadata"
                 )
                 raise RuntimeError("Metadata problem...")
 
-            for stream in self._streamer_tuples:
-                if image_id % stream[1] == 0:
-                    stream[0].appendleft(data)
-
+            for idx, stream in enumerate(self._streamer_tuples):
+                if image_frame % stream[1] == 0:
+                    stream[0].append(data)
+                    logger.debug(
+                        f"Receiver added image: {image_frame} to queue {idx}."
+                    )
         logger.debug(f"End signal received... finishing receiver thread...")
+        self._stop()
+        
