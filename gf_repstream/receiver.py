@@ -6,6 +6,7 @@ from gf_repstream.protocol import TestMetadata
 
 logger = logging.getLogger(__name__)
 
+
 class Receiver:
     def __init__(self, tuples_list, sentinel):
         """Initialize a gigafrost receiver.
@@ -21,7 +22,7 @@ class Receiver:
     def _decode_metadata(self, metadata):
         source = metadata.get("source")
         if source == 0:
-            metadata['source'] = 'gigafrost'
+            metadata["source"] = "gigafrost"
         return metadata
 
     def _stop(self):
@@ -50,8 +51,10 @@ class Receiver:
         while not self._sentinel.is_set():
             # receives the data
             data = zmq_socket.recv_multipart()
-            # binary metadata converted            
-            metadata = self._decode_metadata(TestMetadata.from_buffer_copy(data[0]).as_dict())
+            # binary metadata converted
+            metadata = self._decode_metadata(
+                TestMetadata.from_buffer_copy(data[0]).as_dict()
+            )
 
             # basic verification of the metadata
             dtype = metadata.get("type")
@@ -67,9 +70,6 @@ class Receiver:
             for idx, stream in enumerate(self._streamer_tuples):
                 if image_frame % stream[1] == 0:
                     stream[0].append(data)
-                    logger.debug(
-                        f"Receiver added image: {image_frame} to queue {idx}."
-                    )
+                    logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
         logger.debug(f"End signal received... finishing receiver thread...")
         self._stop()
-        

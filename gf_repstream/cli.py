@@ -15,10 +15,9 @@ from gf_repstream.streamer import Streamer
 
 Log_Format = "%(levelname)s %(asctime)s - %(message)s"
 
-logging.basicConfig(format=Log_Format, 
-                    filename='gf_repstream.log', 
-                    filemode="w",
-                    level=logging.DEBUG)
+logging.basicConfig(
+    format=Log_Format, filename="gf_repstream.log", filemode="w", level=logging.DEBUG
+)
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,9 @@ def main():
         q_list.append(deque(maxlen=args.buffer_size))
         # stramer outputs the replicated zmq stream
         streamer_list.append(
-            Streamer(name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, mode=mode)
+            Streamer(
+                name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, mode=mode
+            )
         )
         receiver_tuples.append((q_list[-1], args.send_every_nth[i]))
 
@@ -133,7 +134,6 @@ def main():
     for i in range(args.n_output_streams):
         list_threads[i].start()
 
-
     while not exit_event.is_set():
         try:
             sleep(0.1)
@@ -143,6 +143,7 @@ def main():
 
     sleep(1)
     logger.debug("CLI finishing...")
+
 
 if __name__ == "__main__":
     main()

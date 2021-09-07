@@ -8,6 +8,7 @@ from gf_repstream.protocol import TestMetadata
 
 logger = logging.getLogger(__name__)
 
+
 class Streamer:
     def __init__(self, name, deque, sentinel, mode, idle_time=1):
         """Initialize a gigafrost streamer.
@@ -29,7 +30,6 @@ class Streamer:
     def _stop(self):
         self.join()
 
-
     def start(self, io_threads, address):
         """Start the streamer loop.
 
@@ -48,13 +48,15 @@ class Streamer:
         zmq_socket = zmq_context.socket(self._mode)
         zmq_socket.bind(address)
         zmq_socket.setsockopt(zmq.LINGER, -1)
-        
+
         while not self._sentinel.is_set():
             if self._deque:
                 # peek without removing the data from the queue
                 data = self._deque.popleft()
-                # binary metadata converted            
-                image_frame = TestMetadata.from_buffer_copy(data[0]).as_dict().get('frame')
+                # binary metadata converted
+                image_frame = (
+                    TestMetadata.from_buffer_copy(data[0]).as_dict().get("frame")
+                )
                 self._counter += 1
                 logger.debug(
                     f"{self._name} streamer send out image: {image_frame} (counter {self._counter})"
@@ -65,4 +67,3 @@ class Streamer:
                 time.sleep(self._idle_time)
         logger.debug(f"End signal received... finishing streamer thread...")
         self._stop()
-        
