@@ -1,4 +1,5 @@
 __pycache__
+test/__pychace__
 .vscode/
 *.pyc
 gf_repstream.log
