@@ -1,2 +1,4 @@
 __pycache__
 .vscode/
+*.pyc
+gf_repstream.log
