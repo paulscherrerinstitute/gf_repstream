@@ -44,6 +44,17 @@ example:
     python -m gf_repstream.cli --in-address tcp://localhost:9609 --out-init-port 9610 --n-outputs 3 --send-every-nth 1 2 10
 ```
 
+### Fake stream
+
+```bash
+    python -m gf_repstream.test.fake_stream tcp://*:9609
+```
+
+### Consumer
+```bash
+     python -m gf_repstream.test.consume_stream tcp://localhost:9611 SUB
+```
+
 <!-- LICENSE -->
 ## License
 

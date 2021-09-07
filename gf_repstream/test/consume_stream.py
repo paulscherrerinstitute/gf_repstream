@@ -19,8 +19,7 @@ def main(backend):
             "Mode not recognized (SUB or PULL). Halting executing..."
         )
     socket.connect(backend)
-    
-    # Process 5 updates
+
     total_recvs = 0
     while True:
         data = socket.recv_multipart()
