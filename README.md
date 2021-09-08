@@ -46,14 +46,20 @@ example:
 
 ### Fake stream
 
+
+From file:
 ```bash
-    python -m gf_repstream.test.fake_stream tcp://*:9609
+    python -m gf_repstream.test.fake_stream-a <tcp://<address>:<port> -f <path_to_data.raw> -m <mode>
 ```
+
+The data can be found in the folder ```test/test_data``` and the stream will iterate over the existing data until ctrl+C is pressed, terminating the stream.
 
 ### Consumer
 ```bash
-     python -m gf_repstream.test.consume_stream tcp://localhost:9611 SUB
+     python -m gf_repstream.test.consume_stream -a tcp://localhost:9611 -m SUB 
 ```
+
+If header format is the protocol TestMetadata, one can use ```-f TestMetadata``` on the consumer side.
 
 <!-- LICENSE -->
 ## License

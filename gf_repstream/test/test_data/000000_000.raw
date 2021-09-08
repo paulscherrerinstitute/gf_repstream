@@ -1,0 +1,1 @@
+{"image_attributes":{"scan_index":0,"trigger_signal":0,"image_number":7766800,"image_exposure_time":10000,"enable_signal":0,"image_sync_time":1450157077,"scan_datetime":1631087755,"time_stamp":155337324560,"image_is_complete":true},"tags":["0"],"endianess":"little","frame":7766800,"source":"gigafrost","shape":[1200,2016],"htype":["array-1.0"],"type":"uint16"}
