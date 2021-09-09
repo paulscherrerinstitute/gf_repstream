@@ -3,11 +3,11 @@ import random
 import time
 import zmq
 import sys
-from _ctypes import Structure
-from ctypes import c_uint64, c_uint16
+import json
 from os import listdir
 from os.path import isfile, join
 import argparse
+
 from gf_repstream.protocol import TestMetadata
 
 
@@ -37,7 +37,7 @@ def main():
     
     zmq_socket.bind(out_address)
     zmq_socket.setsockopt(zmq.LINGER, 1000)
-    time.sleep(3)
+    time.sleep(1)
     if folder == '':
         # Start your result manager and workers before you start your producers
         for num in range(1000):
@@ -49,6 +49,7 @@ def main():
             time.sleep(0.01)
         time.sleep(1)
     else:
+        counter = 0
         while True:
             try: 
                 files = sorted(listdir(folder))
@@ -62,11 +63,14 @@ def main():
                         send_more = False
                         if index + 1 < len(files):  # Ensure that we don't run out of bounds
                             send_more = raw_file.split('_')[0] == files[index + 1].split('_')[0]
-                        flags = 0
                         if send_more:
-                            flags = zmq.SNDMORE
-                        print(filename, send_more)
-                        zmq_socket.send(file_handle.read(), flags=flags)
+                            header = json.loads(file_handle.read().decode())
+                            header['image_attributes']['image_number'] = counter
+                            header['frame'] = counter
+                            zmq_socket.send_json(header, flags=zmq.SNDMORE)
+                        else:
+                            zmq_socket.send(file_handle.read(), flags=0)
+                    counter += 1
             except KeyboardInterrupt:
                 break
 
