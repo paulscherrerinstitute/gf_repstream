@@ -1,19 +1,8 @@
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## GF_REPSTREAM
 This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to external components. This is developed for usage with Gigafrost camera stream at the TOMCAT beamline at Paul Scherrer Institute.
 
-
-### Built With
-
-* [PyZMQ](https://pyzmq.readthedocs.io/en/latest/)
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-### Prerequisites
-
-### Installation
+The fake gigafrost stream generator was done inspired/using https://github.com/paulscherrerinstitute/mflow
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -46,7 +35,6 @@ example:
 
 ### Fake stream
 
-
 From file:
 ```bash
     python -m gf_repstream.test.fake_stream-a <tcp://<address>:<port> -f <path_to_data.raw> -m <mode>
@@ -61,6 +49,28 @@ The data can be found in the folder ```test/test_data``` and the stream will ite
 
 If header format is the protocol TestMetadata, one can use ```-f TestMetadata``` on the consumer side.
 
+
+## Anaconda 
+
+### Building the package
+
+```bash
+    conda build conda-recipe
+```
+
+### Uploading the package
+
+```bash
+    anaconda upload <path_to.tar.bz2_file>
+```
+
+<!--### Installing the package
+
+```bash
+    conda install -c paulscherrerinstitute gf_repstream
+```-->
+
+
 <!-- LICENSE -->
 ## License
 
@@ -70,26 +80,3 @@ See `LICENSE` for more information.
 ## Authors
 
 * Leonardo Hax Damiani (leonardo.hax@psi.ch)
-* Christian Schlepuetz (christian.schlepuetz@psi.ch)
-
-
-
-
-
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/github_username
