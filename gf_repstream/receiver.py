@@ -25,9 +25,6 @@ class Receiver:
             metadata["source"] = "gigafrost"
         return metadata
 
-    def _stop(self):
-        self.join()
-
     def start(self, io_threads, address):
         """Start the receiver loop.
 
@@ -72,4 +69,3 @@ class Receiver:
                     stream[0].append(data)
                     logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
         logger.debug(f"End signal received... finishing receiver thread...")
-        self._stop()

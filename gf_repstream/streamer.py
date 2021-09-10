@@ -27,9 +27,6 @@ class Streamer:
         self._sentinel = sentinel
         self._mode = mode
 
-    def _stop(self):
-        self.join()
-
     def start(self, io_threads, address):
         """Start the streamer loop.
 
@@ -66,4 +63,3 @@ class Streamer:
                 # nothing to stream
                 time.sleep(self._idle_time)
         logger.debug(f"End signal received... finishing streamer thread...")
-        self._stop()
