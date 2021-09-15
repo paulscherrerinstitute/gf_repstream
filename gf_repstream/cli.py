@@ -83,6 +83,13 @@ def main():
         help="list containing the frequency of each output stream to be generated",
     )
 
+    parser.add_argument(
+        '--mode-metadata', 
+        default='file', 
+        type=str,
+        help='Incoming header data.'
+    )
+
     args = parser.parse_args()
 
     q_list = []
@@ -99,6 +106,7 @@ def main():
         )
 
     for i in range(args.n_output_streams):
+        # default zmq moe
         mode = zmq.PUB
         # writer is the first streamer thread and works with PUSH/PULL
         if i == 0:
@@ -108,13 +116,14 @@ def main():
         # stramer outputs the replicated zmq stream
         streamer_list.append(
             Streamer(
-                name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, mode=mode
+                name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, zmq_mode=mode,
+                mode_metadata=args.mode_metadata
             )
         )
         receiver_tuples.append((q_list[-1], args.send_every_nth[i]))
 
     # Receiver object with the streamer and their queues
-    receiver = Receiver(tuples_list=receiver_tuples, sentinel=exit_event)
+    receiver = Receiver(tuples_list=receiver_tuples, sentinel=exit_event, mode=args.mode_metadata)
 
     # Prepares receiver thread
     start_receiver = partial(receiver.start, args.io_threads, args.in_address)

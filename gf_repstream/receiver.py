@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import logging
+import json
 import zmq
 
 from gf_repstream.protocol import TestMetadata
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Receiver:
-    def __init__(self, tuples_list, sentinel):
+    def __init__(self, tuples_list, sentinel, mode):
         """Initialize a gigafrost receiver.
 
         Args:
@@ -18,6 +19,7 @@ class Receiver:
         """
         self._streamer_tuples = tuples_list
         self._sentinel = sentinel
+        self._mode = mode
 
     def _decode_metadata(self, metadata):
         source = metadata.get("source")
@@ -49,9 +51,16 @@ class Receiver:
             # receives the data
             data = zmq_socket.recv_multipart()
             # binary metadata converted
-            metadata = self._decode_metadata(
-                TestMetadata.from_buffer_copy(data[0]).as_dict()
-            )
+            if self._mode == 'file':
+                metadata = json.loads(data[0].decode())
+            else:
+                try:
+                    metadata = self._decode_metadata(
+                        TestMetadata.from_buffer_copy(data[0]).as_dict()
+                    )
+                    data = socket.recv_multipart()
+                except:
+                    raise RuntimeError("Problem decoding the TestMetadata...")
 
             # basic verification of the metadata
             dtype = metadata.get("type")

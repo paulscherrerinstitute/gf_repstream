@@ -3,6 +3,7 @@ import json
 import logging
 import time
 import zmq
+import sys
 
 from gf_repstream.protocol import TestMetadata
 
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Streamer:
-    def __init__(self, name, deque, sentinel, mode, idle_time=1):
+    def __init__(self, name, deque, sentinel, zmq_mode, mode_metadata, idle_time=1):
         """Initialize a gigafrost streamer.
 
         Args:
@@ -25,7 +26,8 @@ class Streamer:
         self._last_sent_frame = -1
         self._counter = 0
         self._sentinel = sentinel
-        self._mode = mode
+        self._zmq_mode = zmq_mode
+        self._mode_metadata = mode_metadata
 
     def start(self, io_threads, address):
         """Start the streamer loop.
@@ -42,7 +44,7 @@ class Streamer:
 
         # prepares the zmq socket to send out data PUB/SUB (bind)
         zmq_context = zmq.Context(io_threads=io_threads)
-        zmq_socket = zmq_context.socket(self._mode)
+        zmq_socket = zmq_context.socket(self._zmq_mode)
         zmq_socket.bind(address)
         zmq_socket.setsockopt(zmq.LINGER, -1)
 
@@ -50,14 +52,23 @@ class Streamer:
             if self._deque:
                 # peek without removing the data from the queue
                 data = self._deque.popleft()
+                
+                # print('data size', sys.getsizeof(data)) 112
+                # print('data 0', sys.getsizeof(data[0])) 417
+                # print('data 1', sys.getsizeof(data[1])) 4838433
+
                 # binary metadata converted
-                image_frame = (
-                    TestMetadata.from_buffer_copy(data[0]).as_dict().get("frame")
-                )
+                # image_frame = (
+                #     TestMetadata.from_buffer_copy(data[0]).as_dict().get("frame")
+                # )
+                metadata = json.loads(data[0].decode())
+                # print(metadata)
+                image_frame = metadata['frame']
                 self._counter += 1
                 logger.debug(
                     f"{self._name} streamer send out image: {image_frame} (counter {self._counter})"
                 )
+                print(f"{self._name} streamer send out image: {image_frame} (counter {self._counter})")
                 zmq_socket.send_multipart(data)
             else:
                 # nothing to stream
