@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import numpy as np
 import random
 import time
 import zmq
@@ -15,16 +16,21 @@ def main():
     parser = argparse.ArgumentParser(description='Fake GF Stream')
 
     parser.add_argument('-f', '--folder', default="", type=str, help='Destination folder containing the raw files')
-    parser.add_argument('-a', '--address', default="tcp://*:9610", type=str,
-                        help='Address - format "tcp://<address>:<port>" (default: "tcp://*:9999")')
+    parser.add_argument('-a', '--address', default="tcp://*:9609", type=str,
+                        help='Address - format "tcp://<address>:<port>" (default: "tcp://*:9609")')
     parser.add_argument('-m', '--mode', default='push', type=str,
                         help='Communication mode - either push (default) or pub')
+
+    parser.add_argument('-i', '--n-images', default=100, type=int,
+                        help='Number of images to be streamed')
 
     arguments = parser.parse_args()
 
     folder = arguments.folder
     out_address = arguments.address
     mode = arguments.mode
+    n_images = arguments.n_images
+    total_images = 1000
 
     context = zmq.Context()
 
@@ -53,13 +59,13 @@ def main():
         while True:
             try: 
                 files = sorted(listdir(folder))
-
                 for index, raw_file in enumerate(files):
                     filename = join(folder, raw_file)
                     if not (raw_file.endswith('.raw') and isfile(filename)):
                         continue
 
                     with open(filename, mode='rb') as file_handle:
+                        time.sleep(.1)
                         send_more = False
                         if index + 1 < len(files):  # Ensure that we don't run out of bounds
                             send_more = raw_file.split('_')[0] == files[index + 1].split('_')[0]
@@ -67,10 +73,22 @@ def main():
                             header = json.loads(file_handle.read().decode())
                             header['image_attributes']['image_number'] = counter
                             header['frame'] = counter
+                            # provisory details for std-det-writer header
+                            header['output_file'] = "/tmp/output_test.h5"
+
+                            # uint64 is not serializable 
+                            # sending int for now
+                            header['run_id'] = 0 
+                            header['n_images'] = n_images
+                            header['i_image'] = counter
+                            header['status'] = 0
                             zmq_socket.send_json(header, flags=zmq.SNDMORE)
+                            print(f'frame {counter} sent out...')
+                            counter += 1
                         else:
                             zmq_socket.send(file_handle.read(), flags=0)
-                    counter += 1
+                    # else:
+                    #     break
             except KeyboardInterrupt:
                 break
 
