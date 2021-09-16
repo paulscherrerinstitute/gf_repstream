@@ -1,0 +1,19 @@
+{
+	"streams": [
+        {   "name": "writer",
+            "zmq_mode": "PUSH",
+            "port": 9610,
+            "send_every_nth":1
+        },
+        {   "name": "preview",
+            "zmq_mode": "PUB",
+            "port": 9611,
+            "send_every_nth":5
+        },
+        {   "name": "gpu",
+            "zmq_mode": "PUB",
+            "port": 9612,
+            "send_every_nth":10
+        }
+    ]
+}

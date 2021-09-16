@@ -4,6 +4,8 @@ import logging
 import os
 import zmq
 import sys
+import json
+from pathlib import Path
 from collections import deque
 from functools import partial
 from threading import Thread, Event
@@ -90,7 +92,37 @@ def main():
         help='Incoming header data.'
     )
 
+    parser.add_argument(
+        "--config-file",
+        type=str,
+        default=None,
+        help="A gf_repstream config file"
+    )
+
     args = parser.parse_args()
+
+    zmq_modes = []
+    stream_ports = []
+    stream_names= []
+
+    if args.config_file is not None and Path(args.config_file).exists() :
+        with open(args.config_file) as f:
+            json_config = json.load(f)
+            args.send_every_nth = []
+            try:
+                for i in json_config['streams']:
+                    stream_names.append(i['name'])
+                    args.send_every_nth.append(i['send_every_nth'])
+                    if i['zmq_mode'].upper() == 'PUSH':
+                        zmq_modes.append(zmq.PUSH)
+                    elif i['zmq_mode'].upper() == 'PUB':
+                        zmq_modes.append(zmq.PUB)
+                    else:
+                        raise RuntimeError("Zmq mode not recognized (PUSH or PUB).")
+                    stream_ports.append(i['port'])
+            except Exception as e:
+                raise RuntimeError("Gf_repstream config file with problems.")
+            args.n_output_streams = len(json_config['streams'])
 
     q_list = []
     streamer_list = []
@@ -105,25 +137,42 @@ def main():
             "Number of output streams must be identical to the length of the send_every_nth list. Halting execution of gf_repstream."
         )
 
+    # default for zmq_modes (1st push, else pub)
+    if zmq_modes:
+        for i in range(args.n_output_streams):
+            mode = zmq.PUB
+            if i == 0:
+                mode = zmq.PUSH
+            zmq_modes.append(mode)
+
+    # ports definition
+    if stream_ports:
+        for i in range(args.n_output_streams):
+            stream_ports.append(args.out_init_port + i)
+
+    if stream_names:
+        for i in range(args.n_output_streams):
+            stream_names.append(f"output_{i}_{zmq_modes[i]}")
+
     for i in range(args.n_output_streams):
-        # default zmq moe
-        mode = zmq.PUB
-        # writer is the first streamer thread and works with PUSH/PULL
-        if i == 0:
-            mode = zmq.PUSH
         # deque for each output stream
         q_list.append(deque(maxlen=args.buffer_size))
         # stramer outputs the replicated zmq stream
         streamer_list.append(
             Streamer(
-                name=f"output_{i}", deque=q_list[-1], sentinel=exit_event, zmq_mode=mode,
+                name=stream_names[i],
+                deque=q_list[-1], 
+                sentinel=exit_event, 
+                zmq_mode=zmq_modes[i],
                 mode_metadata=args.mode_metadata
             )
         )
         receiver_tuples.append((q_list[-1], args.send_every_nth[i]))
 
     # Receiver object with the streamer and their queues
-    receiver = Receiver(tuples_list=receiver_tuples, sentinel=exit_event, mode=args.mode_metadata)
+    receiver = Receiver(tuples_list=receiver_tuples, 
+                        sentinel=exit_event, 
+                        mode=args.mode_metadata)
 
     # Prepares receiver thread
     start_receiver = partial(receiver.start, args.io_threads, args.in_address)
@@ -133,9 +182,8 @@ def main():
     init_port = args.out_init_port
     for i in range(args.n_output_streams):
         start_streamer_thread = partial(
-            streamer_list[i].start, args.io_threads, "tcp://*:" + str(init_port)
+            streamer_list[i].start, args.io_threads, "tcp://*:" + str(stream_ports[i])
         )
-        init_port += 1
         list_threads.append(Thread(target=start_streamer_thread, daemon=True))
 
     # Main application - starting receiver and streamers
