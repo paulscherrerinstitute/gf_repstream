@@ -82,6 +82,7 @@ def main():
                             header['n_images'] = n_images
                             header['i_image'] = counter
                             header['status'] = 0
+                            header['detector_name'] = 'Gigafrost'
                             zmq_socket.send_json(header, flags=zmq.SNDMORE)
                             print(f'frame {counter} sent out...')
                             counter += 1
