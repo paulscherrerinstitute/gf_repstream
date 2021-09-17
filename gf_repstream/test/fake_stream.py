@@ -56,7 +56,8 @@ def main():
         time.sleep(1)
     else:
         counter = 0
-        while True:
+        while True and counter < 1000:
+
             try: 
                 files = sorted(listdir(folder))
                 for index, raw_file in enumerate(files):
@@ -65,7 +66,7 @@ def main():
                         continue
 
                     with open(filename, mode='rb') as file_handle:
-                        time.sleep(.1)
+                        time.sleep(.01)
                         send_more = False
                         if index + 1 < len(files):  # Ensure that we don't run out of bounds
                             send_more = raw_file.split('_')[0] == files[index + 1].split('_')[0]
@@ -84,12 +85,10 @@ def main():
                             header['status'] = 0
                             header['detector_name'] = 'Gigafrost'
                             zmq_socket.send_json(header, flags=zmq.SNDMORE)
-                            print(f'frame {counter} sent out...')
+                            # print("Sent ", counter)
                             counter += 1
                         else:
                             zmq_socket.send(file_handle.read(), flags=0)
-                    # else:
-                    #     break
             except KeyboardInterrupt:
                 break
 
