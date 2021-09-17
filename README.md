@@ -7,15 +7,17 @@ The fake gigafrost stream generator was done inspired/using https://github.com/p
 <!-- USAGE EXAMPLES -->
 ## Usage
 ```bash
-    usage: gf_repstream [-h] [-v] [--in-address PROTOCOL://HOST:PORT] [--out-init-port PROTOCOL://HOST:PORT] [--io-threads IO_THREADS] [--buffer-size BUFFER_SIZE] [--n-output-streams N_OUTPUT_STREAMS]
-                        [--send-every-nth SEND_EVERY_NTH [SEND_EVERY_NTH ...]]
+    usage: gf_repstream [-h] [-v] [--in-address PROTOCOL://HOST:PORT] [--in-zmq-mode IN_ZMQ_MODE] [--out-init-port OUT_INIT_PORT] [--io-threads IO_THREADS] [--buffer-size BUFFER_SIZE]
+                    [--n-output-streams N_OUTPUT_STREAMS] [--send-every-nth SEND_EVERY_NTH [SEND_EVERY_NTH ...]] [--mode-metadata MODE_METADATA] [--config-file CONFIG_FILE]
 
     optional arguments:
     -h, --help            show this help message and exit
-    -v, --version         show version number and exit
+    -v, --version         show programs version number and exit
     --in-address PROTOCOL://HOST:PORT
                             an address string for zmq socket (default: tcp://xbl-daq-23:9990)
-    --out-init-port PROTOCOL://HOST:PORT
+    --in-zmq-mode IN_ZMQ_MODE
+                            Input stream zmq mode (SUB or PULL) (default: PULL)
+    --out-init-port OUT_INIT_PORT
                             the initial port for the output streams (increased by 1 for every other stream) (default: 9610)
     --io-threads IO_THREADS
                             the size of the zmq thread pool to handle I/O operations (default: 1)
@@ -25,6 +27,10 @@ The fake gigafrost stream generator was done inspired/using https://github.com/p
                             number of output streams to be generated (default: 0)
     --send-every-nth SEND_EVERY_NTH [SEND_EVERY_NTH ...]
                             list containing the frequency of each output stream to be generated (default: None)
+    --mode-metadata MODE_METADATA
+                            Incoming header data. (default: file)
+    --config-file CONFIG_FILE
+                            A gf_repstream config file (default: None)
 ```
 
 example:

@@ -50,8 +50,14 @@ def main():
     )
 
     parser.add_argument(
+        "--in-zmq-mode",
+        type=str,
+        default="PULL",
+        help="Input stream zmq mode (SUB or PULL)",
+    )
+
+    parser.add_argument(
         "--out-init-port",
-        metavar="PROTOCOL://HOST:PORT",
         type=int,
         default="9610",
         help="the initial port for the output streams (increased by 1 for every other stream)",
@@ -105,12 +111,16 @@ def main():
     stream_ports = []
     stream_names= []
 
+    # config file has priority over the cli commands
     if args.config_file is not None and Path(args.config_file).exists() :
         with open(args.config_file) as f:
             json_config = json.load(f)
             args.send_every_nth = []
             try:
-                for i in json_config['streams']:
+                for i in json_config['in-stream']:
+                    args.in_address = i['address']
+                    args.in_zmq_mode = i['zmq_mode']
+                for i in json_config['out-streams']:
                     stream_names.append(i['name'])
                     args.send_every_nth.append(i['send_every_nth'])
                     if i['zmq_mode'].upper() == 'PUSH':
@@ -122,7 +132,7 @@ def main():
                     stream_ports.append(i['port'])
             except Exception as e:
                 raise RuntimeError("Gf_repstream config file with problems.")
-            args.n_output_streams = len(json_config['streams'])
+            args.n_output_streams = len(json_config['out-streams'])
 
     q_list = []
     streamer_list = []
@@ -163,6 +173,7 @@ def main():
                 name=stream_names[i],
                 deque=q_list[-1], 
                 sentinel=exit_event, 
+                port=stream_ports[i],
                 zmq_mode=zmq_modes[i],
                 mode_metadata=args.mode_metadata
             )
@@ -172,7 +183,8 @@ def main():
     # Receiver object with the streamer and their queues
     receiver = Receiver(tuples_list=receiver_tuples, 
                         sentinel=exit_event, 
-                        mode=args.mode_metadata)
+                        mode=args.mode_metadata,
+                        zmq_mode=args.in_zmq_mode)
 
     # Prepares receiver thread
     start_receiver = partial(receiver.start, args.io_threads, args.in_address)

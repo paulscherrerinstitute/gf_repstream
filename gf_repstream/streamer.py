@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Streamer:
-    def __init__(self, name, deque, sentinel, zmq_mode, mode_metadata, idle_time=1):
+    def __init__(self, name, deque, sentinel, port, zmq_mode, mode_metadata, idle_time=1):
         """Initialize a gigafrost streamer.
 
         Args:
@@ -26,6 +26,7 @@ class Streamer:
         self._last_sent_frame = -1
         self._counter = 0
         self._sentinel = sentinel
+        self._port = port
         self._zmq_mode = zmq_mode
         self._mode_metadata = mode_metadata
 
@@ -66,9 +67,8 @@ class Streamer:
                 image_frame = metadata['frame']
                 self._counter += 1
                 logger.debug(
-                    f"{self._name} streamer send out image: {image_frame} (counter {self._counter})"
+                    f"{self._name} streamer send out image: {image_frame} (counter {self._counter}, mode {self._zmq_mode}, port {self._port})"
                 )
-                print(f"{self._name} streamer send out image: {image_frame} (counter {self._counter})")
                 zmq_socket.send_multipart(data)
             else:
                 # nothing to stream

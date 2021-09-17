@@ -1,5 +1,11 @@
 {
-	"streams": [
+    "in-stream": [
+        {   "name": "in_backend",
+            "zmq_mode": "PULL",
+            "address": "tcp://localhost:9609"
+        }
+    ],
+	"out-streams": [
         {   "name": "writer",
             "zmq_mode": "PUSH",
             "port": 9610,
@@ -8,7 +14,7 @@
         {   "name": "preview",
             "zmq_mode": "PUB",
             "port": 9611,
-            "send_every_nth":5
+            "send_every_nth":2
         },
         {   "name": "gpu",
             "zmq_mode": "PUB",
