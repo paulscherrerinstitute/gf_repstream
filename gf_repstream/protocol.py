@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from _ctypes import Structure
-from ctypes import c_uint64, c_uint16
+from ctypes import c_uint64, c_uint32, c_uint16, c_uint8, c_byte, c_int, c_bool
 
 class RowPerFrame(Structure):
     _pack_ = 1
