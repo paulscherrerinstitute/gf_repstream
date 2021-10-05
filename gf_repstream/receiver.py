@@ -3,7 +3,7 @@ import logging
 import json
 import zmq
 
-from gf_repstream.protocol import TestMetadata
+from gf_repstream.protocol import GFHeader
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ class Receiver:
             else:
                 try:
                     metadata = self._decode_metadata(
-                        TestMetadata.from_buffer_copy(data[0]).as_dict()
+                        GFHeader.from_buffer_copy(data[0]).as_dict()
                     )
                     data = socket.recv_multipart()
                 except:
