@@ -64,7 +64,7 @@ class Receiver:
                     metadata = self._decode_metadata(
                         GFHeader.from_buffer_copy(data[0]).as_dict()
                     )
-                    data = socket.recv_multipart()
+                    data = zmq_socket.recv_multipart()
                 except:
                     raise RuntimeError("Problem decoding the TestMetadata...")
 
