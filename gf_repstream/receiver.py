@@ -46,7 +46,7 @@ class Receiver:
         zmq_context = zmq.Context(io_threads=io_threads)
         if self._zmq_mode.upper() == "SUB":
             zmq_socket = zmq_context.socket(zmq.SUB)
-            zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+            zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
         elif self._zmq_mode.upper() == "PULL":
             zmq_socket = zmq_context.socket(zmq.PULL)
         else: 
