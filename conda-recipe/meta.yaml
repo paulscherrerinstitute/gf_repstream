@@ -20,12 +20,6 @@ requirements:
     - python {{ python }}
     - pyzmq
 
-test:
-  source_files:
-      - tests
-  requires:
-      - pytest
-
 about:
   home: https://git.psi.ch/hax_l/gf_repstream
   summary: {{ data['description'] }}
