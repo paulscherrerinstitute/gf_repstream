@@ -33,8 +33,12 @@ The fake gigafrost stream generator was done inspired/using https://github.com/p
                             A gf_repstream config file (default: None)
 ```
 
-example:
+usage example via config file:
+```bash
+    python -m gf_repstream.cli --config-file ./gf_repstream/test/repstream_config.json
+```
 
+usage example via command line:
 ```bash
     python -m gf_repstream.cli --in-address tcp://localhost:9609 --out-init-port 9610 --n-outputs 3 --send-every-nth 1 2 10
 ```
