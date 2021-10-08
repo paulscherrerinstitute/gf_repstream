@@ -59,13 +59,10 @@ class Receiver:
             # receives the data
             data = zmq_socket.recv_multipart()
             # binary metadata converted
-            if self._mode == 'file':
+            try:
                 metadata = json.loads(data[0].decode())
-            else:
-                try:
-                    metadata = json.loads(data[0].decode())
-                except:
-                    raise RuntimeError("Problem decoding the Metadata...")
+            except:
+                raise RuntimeError("Problem decoding the Metadata...")
 
             # basic verification of the metadata
             dtype = metadata.get("type")
@@ -81,7 +78,6 @@ class Receiver:
 
             for idx, stream in enumerate(self._streamer_tuples):
                 if image_frame % stream[1] == 0:
-                    
                     stream[0].append(data)
                     if stream[1] == 0:
                          print(image_frame)

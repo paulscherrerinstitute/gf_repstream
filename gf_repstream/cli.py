@@ -93,7 +93,7 @@ def main():
 
     parser.add_argument(
         '--mode-metadata', 
-        default='file', 
+        default='gf', 
         type=str,
         help='Incoming header data.'
     )
