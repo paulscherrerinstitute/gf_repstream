@@ -5,8 +5,6 @@ import time
 import zmq
 import sys
 
-from gf_repstream.protocol import TestMetadata
-
 logger = logging.getLogger(__name__)
 
 

@@ -93,7 +93,7 @@ def main():
 
     parser.add_argument(
         '--mode-metadata', 
-        default='file', 
+        default='gf', 
         type=str,
         help='Incoming header data.'
     )
@@ -117,19 +117,20 @@ def main():
             json_config = json.load(f)
             args.send_every_nth = []
             try:
-                for i in json_config['in-stream']:
-                    args.in_address = i['address']
-                    args.in_zmq_mode = i['zmq_mode']
+                # prepares the input stream parameters
+                args.in_address = json_config['in-stream']['address']
+                args.in_zmq_mode = json_config['in-stream']['zmq_mode']
                 for i in json_config['out-streams']:
-                    stream_names.append(i['name'])
-                    args.send_every_nth.append(i['send_every_nth'])
-                    if i['zmq_mode'].upper() == 'PUSH':
+                    out_dict = json_config['out-streams'][i]
+                    stream_names.append(i)
+                    args.send_every_nth.append(out_dict['send_every_nth'])
+                    if out_dict['zmq_mode'].upper() == 'PUSH':
                         zmq_modes.append(zmq.PUSH)
-                    elif i['zmq_mode'].upper() == 'PUB':
+                    elif out_dict['zmq_mode'].upper() == 'PUB':
                         zmq_modes.append(zmq.PUB)
                     else:
                         raise RuntimeError("Zmq mode not recognized (PUSH or PUB).")
-                    stream_ports.append(i['port'])
+                    stream_ports.append(out_dict['port'])
             except Exception as e:
                 raise RuntimeError("Gf_repstream config file with problems.")
             args.n_output_streams = len(json_config['out-streams'])

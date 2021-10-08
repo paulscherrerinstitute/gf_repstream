@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+import socket
+import numpy as np
+import ctypes
+
 from _ctypes import Structure
 from ctypes import c_uint64, c_uint32, c_uint16, c_uint8, c_byte, c_int, c_bool
 
@@ -100,3 +104,21 @@ class GFHeader(Structure):
 
     def as_dict(self):
         return dict((f, getattr(self, f)) for f, _ in self._fields_)
+
+
+ip = "10.30.20.6"
+ports = list(range(51000, 51001, 1))
+sockets = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM) for i in range(len(ports))]
+
+for s, p in zip(sockets, ports):
+    print("IP:Port: ", ip, p)
+    s.bind((ip, p))
+
+while True:
+    for s in sockets:
+        data, address = s.recvfrom(6080)
+        header = data[0:256]
+        # print(parse_data(data))
+        header_dict = GFHeader.from_buffer_copy(header).as_dict()
+        print(header_dict)
+        

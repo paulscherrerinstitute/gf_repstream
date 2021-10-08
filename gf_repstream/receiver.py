@@ -3,7 +3,7 @@ import logging
 import json
 import zmq
 
-from gf_repstream.protocol import TestMetadata
+from gf_repstream.protocol import GFHeader
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +46,11 @@ class Receiver:
         zmq_context = zmq.Context(io_threads=io_threads)
         if self._zmq_mode.upper() == "SUB":
             zmq_socket = zmq_context.socket(zmq.SUB)
-            zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+            zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
         elif self._zmq_mode.upper() == "PULL":
             zmq_socket = zmq_context.socket(zmq.PULL)
+            #zmq_socket.set_hwm(4)
+            #zmq_socket.RCVTIMEO=1000
         else: 
             raise RuntimeError("Receiver input zmq mode not recognized (SUB/PULL).")
         zmq_socket.connect(address)
@@ -57,22 +59,17 @@ class Receiver:
             # receives the data
             data = zmq_socket.recv_multipart()
             # binary metadata converted
-            if self._mode == 'file':
+            try:
                 metadata = json.loads(data[0].decode())
-            else:
-                try:
-                    metadata = self._decode_metadata(
-                        TestMetadata.from_buffer_copy(data[0]).as_dict()
-                    )
-                    data = socket.recv_multipart()
-                except:
-                    raise RuntimeError("Problem decoding the TestMetadata...")
+            except:
+                raise RuntimeError("Problem decoding the Metadata...")
 
             # basic verification of the metadata
             dtype = metadata.get("type")
             shape = metadata.get("shape")
             source = metadata.get("source")
             image_frame = metadata.get("frame")
+            #print(image_frame)
             if dtype is None or shape is None or source != "gigafrost":
                 logger.error(
                     "Cannot find 'type' and/or 'shape' and/or 'source' in received metadata"
@@ -82,5 +79,9 @@ class Receiver:
             for idx, stream in enumerate(self._streamer_tuples):
                 if image_frame % stream[1] == 0:
                     stream[0].append(data)
+                    if stream[1] == 0:
+                         print(image_frame)
                     logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
+                    #print(f"Receiver added image: {image_frame} to queue {idx}.")
         logger.debug(f"End signal received... finishing receiver thread...")
+
