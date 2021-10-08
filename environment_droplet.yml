@@ -1,4 +1,4 @@
-name: test_26
+name: gf_repstream 
 channels:
   - anaconda
   - GSECARS
@@ -141,4 +141,4 @@ dependencies:
     - regex==2021.8.28
     - toml==0.10.2
     - tomli==1.2.1
-prefix: /sls/X02DA/data/e18600/.conda/envs/test_26
+prefix: /sls/X02DA/data/e18600/.conda/envs/gf_repstream
