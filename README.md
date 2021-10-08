@@ -1,3 +1,5 @@
+[![Conda](https://img.shields.io/conda/pn/paulscherrerinstitute/gf_repstream?color=success)](https://anaconda.org/paulscherrerinstitute/gf_repstream)  [![GitHub](https://img.shields.io/github/license/paulscherrerinstitute/gf_repstream)](https://github.com/paulscherrerinstitute/gf_repstream/blob/master/LICENSE) ![GitHub Release Date](https://img.shields.io/github/release-date/paulscherrerinstitute/gf_repstream) ![conda_publish](https://github.com/paulscherrerinstitute/gf_repstream/workflows/conda_publish/badge.svg)
+
 <!-- ABOUT THE PROJECT -->
 ## GF_REPSTREAM
 This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to external components. This is developed for usage with Gigafrost camera stream at the TOMCAT beamline at Paul Scherrer Institute.
