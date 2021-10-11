@@ -1,3 +1,5 @@
+[![Conda](https://img.shields.io/conda/pn/paulscherrerinstitute/gf_repstream?color=success)](https://anaconda.org/paulscherrerinstitute/gf_repstream)  [![GitHub](https://img.shields.io/github/license/paulscherrerinstitute/gf_repstream)](https://github.com/paulscherrerinstitute/gf_repstream/blob/master/LICENSE) ![GitHub Release Date](https://img.shields.io/github/release-date/paulscherrerinstitute/gf_repstream) ![conda_publish](https://github.com/paulscherrerinstitute/gf_repstream/workflows/conda_publish/badge.svg)
+
 <!-- ABOUT THE PROJECT -->
 ## GF_REPSTREAM
 This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to external components. This is developed for usage with Gigafrost camera stream at the TOMCAT beamline at Paul Scherrer Institute.
@@ -33,8 +35,12 @@ The fake gigafrost stream generator was done inspired/using https://github.com/p
                             A gf_repstream config file (default: None)
 ```
 
-example:
+usage example via config file:
+```bash
+    python -m gf_repstream.cli --config-file ./gf_repstream/test/repstream_config.json
+```
 
+usage example via command line:
 ```bash
     python -m gf_repstream.cli --in-address tcp://localhost:9609 --out-init-port 9610 --n-outputs 3 --send-every-nth 1 2 10
 ```

@@ -8,6 +8,7 @@ source:
   path: ..
 
 build:
+  noarch: python
   number: 0
   entry_points:
     - gf_repstream = gf_repstream.cli:main
@@ -19,12 +20,6 @@ requirements:
   run:
     - python {{ python }}
     - pyzmq
-
-test:
-  source_files:
-      - tests
-  requires:
-      - pytest
 
 about:
   home: https://git.psi.ch/hax_l/gf_repstream
