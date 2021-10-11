@@ -73,7 +73,7 @@ def main():
     parser.add_argument(
         "--buffer-size",
         type=int,
-        default=100,
+        default=5000,
         help="a number of last received zmq messages to keep in memory",
     )
 
