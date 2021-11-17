@@ -41,7 +41,7 @@ class Receiver:
             RuntimeError: Unknown metadata format.
         """
         logger.debug(
-            f"GF_repstream.Receiver class with: io_threads {io_threads} and address {address}"
+            f"GF_repstream.Receiver class with: io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode})"
         )
 
         # prepares the zmq socket to receive data
@@ -53,7 +53,11 @@ class Receiver:
             zmq_socket = zmq_context.socket(zmq.PULL)
         else: 
             raise RuntimeError("Receiver input zmq mode not recognized (SUB/PULL).")
+
+
+
         zmq_socket.connect(address)
+        zmq_socket.setsockopt(zmq.LINGER, -1)
 
         while not self._sentinel.is_set():
             # receives the data
@@ -64,6 +68,7 @@ class Receiver:
             except:
                 raise RuntimeError("Problem decoding the Metadata...")
 
+<<<<<<< HEAD
             for idx, stream in enumerate(self._streamer_tuples):
                 # stream output mode
                 stream_mode = stream[1][0]
@@ -97,5 +102,24 @@ class Receiver:
                             frame_counter = 1
                             stream[0].append(data)
 
+=======
+            # basic verification of the metadata
+            dtype = metadata.get("type")
+            shape = metadata.get("shape")
+            source = metadata.get("source")
+            image_frame = metadata.get("frame")
+            if dtype is None or shape is None or source != "gigafrost":
+                logger.error(
+                    "Cannot find 'type' and/or 'shape' and/or 'source' in received metadata"
+                )
+                raise RuntimeError("Metadata problem...")
+
+            for idx, stream in enumerate(self._streamer_tuples):
+                if image_frame % stream[1] == 0:
+                    stream[0].append(data)
+                    if stream[1] == 1:
+                         print(f"adding {image_frame} to queue {idx}")
+                    logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
+>>>>>>> 6f94d0c41e2675dae35e16269345d6da0cfaa9fc
         logger.debug(f"End signal received... finishing receiver thread...")
 

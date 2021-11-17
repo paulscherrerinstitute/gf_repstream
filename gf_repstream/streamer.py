@@ -38,7 +38,7 @@ class Streamer:
         """
 
         logger.debug(
-            f"GF_repstream.Streamer with: io_threads {io_threads} and address {address}"
+            f"GF_repstream.Streamer with: io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode})"
         )
 
         # prepares the zmq socket to send out data PUB/SUB (bind)
@@ -51,12 +51,15 @@ class Streamer:
             if self._deque:
                 # peek without removing the data from the queue
                 data = self._deque.popleft()
+<<<<<<< HEAD
                 # metadata = json.loads(data[0].decode())
                 # image_frame = metadata['frame']
                 self._counter += 1
                 # logger.debug(
                 #     f"{self._name} streamer send out image: {image_frame} (counter {self._counter}, mode {self._zmq_mode}, port {self._port})"
                 # )
+=======
+>>>>>>> 6f94d0c41e2675dae35e16269345d6da0cfaa9fc
                 zmq_socket.send_multipart(data)
             else:
                 # nothing to stream

@@ -1,8 +1,8 @@
-name: gf_repstream 
+name: repstream
 channels:
-  - anaconda
   - GSECARS
   - paulscherrerinstitute
+  - anaconda
   - conda-forge
   - defaults
 dependencies:
@@ -16,8 +16,8 @@ dependencies:
   - brotlipy=0.7.0=py38h497a2fe_1001
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.16.1=h7b6447c_0
-  - ca-certificates=2020.10.14=0
-  - certifi=2020.6.20=py38_0
+  - ca-certificates=2021.5.30=ha878542_0
+  - certifi=2021.5.30=py38h578d9bd_0
   - cffi=1.14.4=py38ha312104_0
   - chardet=4.0.0=py38h578d9bd_1
   - cmake=3.21.2=h8897547_0
@@ -26,6 +26,7 @@ dependencies:
   - conda-build=3.21.4=py38h578d9bd_0
   - conda-package-handling=1.7.3=py38h497a2fe_0
   - cryptography=3.4.7=py38ha5dfef3_0
+  - cython=0.29.24=py38h709712a_0
   - expat=2.4.1=h9c3ff4c_0
   - filelock=3.0.12=pyh9f0ad1d_0
   - freetype=2.10.4=h0708190_1
@@ -141,4 +142,3 @@ dependencies:
     - regex==2021.8.28
     - toml==0.10.2
     - tomli==1.2.1
-prefix: /sls/X02DA/data/e18600/.conda/envs/gf_repstream
