@@ -15,10 +15,10 @@ build:
 
 requirements:
   build:
-    - python {{ python }}
+    - python 
     - setuptools
   run:
-    - python {{ python }}
+    - python 
     - pyzmq
 
 about:
