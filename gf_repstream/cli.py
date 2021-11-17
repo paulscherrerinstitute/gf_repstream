@@ -73,7 +73,7 @@ def main():
     parser.add_argument(
         "--buffer-size",
         type=int,
-        default=100,
+        default=5000,
         help="a number of last received zmq messages to keep in memory",
     )
 
@@ -85,7 +85,14 @@ def main():
     )
 
     parser.add_argument(
-        "--send-every-nth",
+        "--send-output-mode",
+        nargs="+",
+        type=str,
+        help="List containing the types of output stream to be generated.",
+    )
+
+    parser.add_argument(
+        "--send-output-param",
         nargs="+",
         type=int,
         help="list containing the frequency of each output stream to be generated",
@@ -179,7 +186,7 @@ def main():
                 mode_metadata=args.mode_metadata
             )
         )
-        receiver_tuples.append((q_list[-1], args.send_every_nth[i]))
+        receiver_tuples.append((q_list[-1], (args.send_output_mode[i], args.send_output_param[i])))
 
     # Receiver object with the streamer and their queues
     receiver = Receiver(tuples_list=receiver_tuples, 

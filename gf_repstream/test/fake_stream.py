@@ -9,7 +9,6 @@ from os import listdir
 from os.path import isfile, join
 import argparse
 
-from gf_repstream.protocol import TestMetadata
 
 
 def main():
@@ -44,16 +43,8 @@ def main():
     zmq_socket.bind(out_address)
     zmq_socket.setsockopt(zmq.LINGER, 1000)
     time.sleep(1)
-    if folder == '':
-        # Start your result manager and workers before you start your producers
-        for num in range(1000):
-            data_message = bytearray(random.getrandbits(8) for _ in range(1024))
-            # zmq_socket.send_multipart([json.dumps(metadata).encode("utf-8"), data_message])
-            zmq_socket.send_multipart(
-                [bytes(TestMetadata(num, 1, 0, 0, 760864, 2, 0)), data_message]
-            )
-            time.sleep(0.01)
-        time.sleep(1)
+    if folder == "":
+        raise RuntimeError('Failed to locate the folder with raw files...')
     else:
         counter = 0
         while True and counter < 1000:

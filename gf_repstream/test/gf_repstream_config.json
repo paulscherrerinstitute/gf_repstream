@@ -1,11 +1,20 @@
 {
     "in-stream": [
+        // "in_backend":{
+        //     "zmq_mode": "PULL",
+        //     "address": "tcp://localhost:9609"
+        // }
         {   "name": "in_backend",
             "zmq_mode": "PULL",
             "address": "tcp://localhost:9609"
         }
     ],
 	"out-streams": [
+        // "writer":{
+        //     "zmq_mode": "PUSH",
+        //     "port": 9610,
+        //     "send_every_nth":1
+        // }
         {   "name": "writer",
             "zmq_mode": "PUSH",
             "port": 9610,

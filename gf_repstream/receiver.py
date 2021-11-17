@@ -21,6 +21,8 @@ class Receiver:
         self._sentinel = sentinel
         self._mode = mode
         self._zmq_mode = zmq_mode
+        # FIXME: correct gigafrost frame size
+        self._frame_block = 200
 
     def _decode_metadata(self, metadata):
         source = metadata.get("source")
@@ -49,8 +51,6 @@ class Receiver:
             zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
         elif self._zmq_mode.upper() == "PULL":
             zmq_socket = zmq_context.socket(zmq.PULL)
-            #zmq_socket.set_hwm(4)
-            #zmq_socket.RCVTIMEO=1000
         else: 
             raise RuntimeError("Receiver input zmq mode not recognized (SUB/PULL).")
         zmq_socket.connect(address)
@@ -64,24 +64,38 @@ class Receiver:
             except:
                 raise RuntimeError("Problem decoding the Metadata...")
 
-            # basic verification of the metadata
-            dtype = metadata.get("type")
-            shape = metadata.get("shape")
-            source = metadata.get("source")
-            image_frame = metadata.get("frame")
-            #print(image_frame)
-            if dtype is None or shape is None or source != "gigafrost":
-                logger.error(
-                    "Cannot find 'type' and/or 'shape' and/or 'source' in received metadata"
-                )
-                raise RuntimeError("Metadata problem...")
-
             for idx, stream in enumerate(self._streamer_tuples):
-                if image_frame % stream[1] == 0:
-                    stream[0].append(data)
-                    if stream[1] == 0:
-                         print(image_frame)
-                    logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
-                    #print(f"Receiver added image: {image_frame} to queue {idx}.")
+                # stream output mode
+                stream_mode = stream[1][0]
+                # stream output param
+                stream_param = stream[1][1]
+                if stream_mode == "send_every_nth":
+                    if image_frame % stream_param == 0:
+                        stream[0].append(data)
+                elif stream_mode == "strides":
+                    if send_flag:
+                        stride_counter = +1
+                        stream[0].append(data)
+                        if stride_counter == stream_param:
+                            send_flag = False
+                            stride_counter = 0
+                    else:
+                        if image_frame % stream_param == 0:
+                            send_flag = True
+                            stride_counter = 1
+                            stream[0].append(data)
+                elif stream_mode == "send_every_nth_frame":
+                    if send_flag:
+                        frame_counter += 1
+                        stream[0].append(data)
+                        if frame_counter == self._frame_block:
+                            send_flag = False
+                            frame_counter = 0
+                    else:
+                        if image_frame % stream_param == 0:
+                            send_flag = True
+                            frame_counter = 1
+                            stream[0].append(data)
+
         logger.debug(f"End signal received... finishing receiver thread...")
 

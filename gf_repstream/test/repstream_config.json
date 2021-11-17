@@ -8,17 +8,20 @@
         "writer":{
             "zmq_mode": "PUSH",
             "port": 9666,
-            "send_every_nth":1
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
         },
         "preview":{
             "zmq_mode": "PUB",
             "port": 9667,
-            "send_every_nth":5
+            "send_output_mode":"send_every_nth",
+            "send_output_param":5
         },
         "gpu":{
             "zmq_mode": "PUB",
             "port": 9668,
-            "send_every_nth":10
+            "send_output_mode":"n_every_nth",
+            "send_output_param":10
         }
     }
 }
