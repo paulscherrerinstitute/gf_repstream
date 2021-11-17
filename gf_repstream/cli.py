@@ -122,7 +122,8 @@ def main():
     if args.config_file is not None and Path(args.config_file).exists() :
         with open(args.config_file) as f:
             json_config = json.load(f)
-            args.send_every_nth = []
+            args.send_output_param = []
+            args.send_output_mode = []
             try:
                 # prepares the input stream parameters
                 args.in_address = json_config['in-stream']['address']
@@ -130,7 +131,8 @@ def main():
                 for i in json_config['out-streams']:
                     out_dict = json_config['out-streams'][i]
                     stream_names.append(i)
-                    args.send_every_nth.append(out_dict['send_every_nth'])
+                    args.send_output_param.append(out_dict['send_output_param'])
+                    args.send_output_mode.append(out_dict['send_output_mode'])
                     if out_dict['zmq_mode'].upper() == 'PUSH':
                         zmq_modes.append(zmq.PUSH)
                     elif out_dict['zmq_mode'].upper() == 'PUB':
@@ -150,9 +152,10 @@ def main():
         raise RuntimeError(
             "Number of output streams must be greater than zero. Halting execution of gf_repstream."
         )
-    if args.n_output_streams != len(args.send_every_nth):
+    if args.n_output_streams != len(args.send_output_param) != 
+        len(args.send_output_mode):
         raise RuntimeError(
-            "Number of output streams must be identical to the length of the send_every_nth list. Halting execution of gf_repstream."
+            "Problem with the number of output streams, modes and parameters. They must be identical."
         )
 
     # default for zmq_modes (1st push, else pub)

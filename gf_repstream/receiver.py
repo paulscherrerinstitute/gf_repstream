@@ -68,16 +68,18 @@ class Receiver:
             except:
                 raise RuntimeError("Problem decoding the Metadata...")
 
-<<<<<<< HEAD
             for idx, stream in enumerate(self._streamer_tuples):
                 # stream output mode
                 stream_mode = stream[1][0]
                 # stream output param
                 stream_param = stream[1][1]
                 if stream_mode == "send_every_nth":
+                    # mode strides: sends 1 frame every nth
                     if image_frame % stream_param == 0:
                         stream[0].append(data)
                 elif stream_mode == "strides":
+                    # mode strides: sends n frames and skip the next n frames
+                    # n = send_output_param
                     if send_flag:
                         stride_counter = +1
                         stream[0].append(data)
@@ -90,6 +92,9 @@ class Receiver:
                             stride_counter = 1
                             stream[0].append(data)
                 elif stream_mode == "send_every_nth_frame":
+                    # mode send_every_nth_frame: sends Y frames every N frames
+                    # Y: self._frame_block (defined on the init for now)
+                    # N: send_output_param
                     if send_flag:
                         frame_counter += 1
                         stream[0].append(data)
@@ -102,24 +107,5 @@ class Receiver:
                             frame_counter = 1
                             stream[0].append(data)
 
-=======
-            # basic verification of the metadata
-            dtype = metadata.get("type")
-            shape = metadata.get("shape")
-            source = metadata.get("source")
-            image_frame = metadata.get("frame")
-            if dtype is None or shape is None or source != "gigafrost":
-                logger.error(
-                    "Cannot find 'type' and/or 'shape' and/or 'source' in received metadata"
-                )
-                raise RuntimeError("Metadata problem...")
-
-            for idx, stream in enumerate(self._streamer_tuples):
-                if image_frame % stream[1] == 0:
-                    stream[0].append(data)
-                    if stream[1] == 1:
-                         print(f"adding {image_frame} to queue {idx}")
-                    logger.debug(f"Receiver added image: {image_frame} to queue {idx}.")
->>>>>>> 6f94d0c41e2675dae35e16269345d6da0cfaa9fc
         logger.debug(f"End signal received... finishing receiver thread...")
 
