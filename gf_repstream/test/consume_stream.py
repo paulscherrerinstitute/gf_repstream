@@ -4,7 +4,7 @@ import sys
 import time
 import zmq
 import argparse
-from gf_repstream.protocol import TestMetadata
+#from gf_repstream.protocol import TestMetadata
 
 
 def main():
@@ -45,12 +45,12 @@ def main():
                 print(metadata)
                 total_recvs += 1
                 print("total recvs", total_recvs)
-            else:
-                data = socket.recv_multipart()
-                metadata = TestMetadata.from_buffer_copy(data[0]).as_dict()
-                print(metadata, total_recvs)
-                total_recvs += 1
-                print("total recvs", total_recvs)
+            #else:
+             #   data = socket.recv_multipart()
+             #   metadata = TestMetadata.from_buffer_copy(data[0]).as_dict()
+             #   print(metadata, total_recvs)
+             #   total_recvs += 1
+             #   print("total recvs", total_recvs)
     except KeyboardInterrupt:
         pass
         

@@ -58,13 +58,15 @@ class Receiver:
 
         zmq_socket.connect(address)
         zmq_socket.setsockopt(zmq.LINGER, -1)
-
+        send_flag = False
+        frame_counter = 0
+        stride_counter = 0
         while not self._sentinel.is_set():
             # receives the data
             data = zmq_socket.recv_multipart()
-            # binary metadata converted
             try:
                 metadata = json.loads(data[0].decode())
+                image_frame = metadata['frame']
             except:
                 raise RuntimeError("Problem decoding the Metadata...")
 
@@ -106,6 +108,6 @@ class Receiver:
                             send_flag = True
                             frame_counter = 1
                             stream[0].append(data)
-
+	
         logger.debug(f"End signal received... finishing receiver thread...")
 

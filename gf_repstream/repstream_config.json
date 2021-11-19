@@ -5,17 +5,17 @@
             "address": "tcp://192.168.10.229:9980"
         },
 	"out-streams": {
-        "writer":{
+        "writer-libdetxr":{
             "zmq_mode": "PUSH",
             "port": 9666,
             "send_output_mode":"send_every_nth",
             "send_output_param":1
         },
-        "preview":{
+        "std-det-writer":{
             "zmq_mode": "PUB",
             "port": 9667,
-            "send_output_mode":"strides",
-            "send_output_param":5
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
         },
         "gpu":{
             "zmq_mode": "PUB",

@@ -51,16 +51,27 @@ class Streamer:
             if self._deque:
                 # peek without removing the data from the queue
                 data = self._deque.popleft()
-<<<<<<< HEAD
-                # metadata = json.loads(data[0].decode())
-                # image_frame = metadata['frame']
-                self._counter += 1
                 # logger.debug(
                 #     f"{self._name} streamer send out image: {image_frame} (counter {self._counter}, mode {self._zmq_mode}, port {self._port})"
                 # )
-=======
->>>>>>> 6f94d0c41e2675dae35e16269345d6da0cfaa9fc
-                zmq_socket.send_multipart(data)
+                # FIXME: adjusts to test the std-det-writer
+                if self._name == 'std-det-writer':  
+                    print("ADJUSTING....", self._counter)
+                    metadata = json.loads(data[0].decode())
+                    metadata['image_attributes']['image_number'] = self._counter 
+                    metadata['frame'] = self._counter
+                    metadata['output_file'] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
+                    metadata['run_id'] = 0
+                    metadata['n_images'] = 10000
+                    metadata['i_image'] = self._counter
+                    metadata['status'] = 0
+                    metadata['detector_name'] = 'Gigafrost'
+                    print("Std-det-writer sent frames:", self._counter)
+                    zmq_socket.send_json(metadata, flags=zmq.SNDMORE)
+                    zmq_socket.send(data[1], flags=0)
+                else:
+                    zmq_socket.send_multipart(data)
+                self._counter += 1
             else:
                 # nothing to stream
                 time.sleep(self._idle_time)

@@ -118,8 +118,7 @@ def main():
     stream_ports = []
     stream_names= []
 
-    # config file has priority over the cli commands
-    if args.config_file is not None and Path(args.config_file).exists() :
+    if args.config_file is not None :
         with open(args.config_file) as f:
             json_config = json.load(f)
             args.send_output_param = []
@@ -140,6 +139,7 @@ def main():
                     else:
                         raise RuntimeError("Zmq mode not recognized (PUSH or PUB).")
                     stream_ports.append(out_dict['port'])
+                  
             except Exception as e:
                 raise RuntimeError("Gf_repstream config file with problems.")
             args.n_output_streams = len(json_config['out-streams'])
@@ -147,13 +147,11 @@ def main():
     q_list = []
     streamer_list = []
     receiver_tuples = []
-
     if args.n_output_streams == 0:
         raise RuntimeError(
             "Number of output streams must be greater than zero. Halting execution of gf_repstream."
         )
-    if args.n_output_streams != len(args.send_output_param) != 
-        len(args.send_output_mode):
+    if args.n_output_streams != len(args.send_output_param) != len(args.send_output_mode):
         raise RuntimeError(
             "Problem with the number of output streams, modes and parameters. They must be identical."
         )
