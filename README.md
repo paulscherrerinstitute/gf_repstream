@@ -49,7 +49,7 @@ usage example via command line:
 
 From file:
 ```bash
-    python -m gf_repstream.test.fake_stream-a <tcp://<address>:<port> -f <path_to_data.raw> -m <mode>
+    python -m gf_repstream.test.fake_stream -a <tcp://<address>:<port> -f <path_to_data.raw> -m <mode>
 ```
 
 The data can be found in the folder ```test/test_data``` and the stream will iterate over the existing data until ctrl+C is pressed, terminating the stream.
