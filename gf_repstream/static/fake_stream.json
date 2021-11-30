@@ -1,0 +1,27 @@
+{
+    "in-stream":
+        {   "name": "in_backend",
+            "zmq_mode": "PULL",
+            "address": "tcp://127.0.0.1:9906"
+        },
+	"out-streams": {
+        "writer-libdetxr":{
+            "zmq_mode": "PUSH",
+            "port": 9666,
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
+        },
+        "std-det-writer":{
+            "zmq_mode": "PUB",
+            "port": 9667,
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
+        },
+        "gpu":{
+            "zmq_mode": "PUB",
+            "port": 9668,
+            "send_output_mode":"send_every_sec",
+            "send_output_param":10
+        }
+    }
+}

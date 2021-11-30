@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Streamer:
-    def __init__(self, name, deque, sentinel, port, zmq_mode, mode_metadata, idle_time=1):
+    def __init__(self, name, deque, sentinel, port,
+                 zmq_mode, mode_metadata, idle_time=1):
         """Initialize a gigafrost streamer.
 
         Args:
@@ -27,6 +28,17 @@ class Streamer:
         self._port = port
         self._zmq_mode = zmq_mode
         self._mode_metadata = mode_metadata
+
+    def add_writer_header(self, metadata):
+        metadata['image_attributes']['image_number'] = self._counter
+        metadata['frame'] = self._counter
+        metadata['output_file'] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
+        metadata['run_id'] = 0
+        metadata['n_images'] = 10000
+        metadata['i_image'] = self._counter
+        metadata['status'] = 0
+        metadata['detector_name'] = 'Gigafrost'
+        return metadata
 
     def start(self, io_threads, address):
         """Start the streamer loop.
@@ -49,25 +61,14 @@ class Streamer:
 
         while not self._sentinel.is_set():
             if self._deque:
-                # peek without removing the data from the queue
                 data = self._deque.popleft()
-                # logger.debug(
-                #     f"{self._name} streamer send out image: {image_frame} (counter {self._counter}, mode {self._zmq_mode}, port {self._port})"
-                # )
                 # FIXME: adjusts to test the std-det-writer
-                if self._name == 'std-det-writer':  
-                    print("ADJUSTING....", self._counter)
-                    metadata = json.loads(data[0].decode())
-                    metadata['image_attributes']['image_number'] = self._counter 
-                    metadata['frame'] = self._counter
-                    metadata['output_file'] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
-                    metadata['run_id'] = 0
-                    metadata['n_images'] = 10000
-                    metadata['i_image'] = self._counter
-                    metadata['status'] = 0
-                    metadata['detector_name'] = 'Gigafrost'
-                    print("Std-det-writer sent frames:", self._counter)
-                    zmq_socket.send_json(metadata, flags=zmq.SNDMORE)
+                if self._name == 'std-det-writer':
+                    zmq_socket.send_json(
+                        self.add_writer_header(
+                            json.loads(
+                                data[0].decode())),
+                        flags=zmq.SNDMORE)
                     zmq_socket.send(data[1], flags=0)
                 else:
                     zmq_socket.send_multipart(data)

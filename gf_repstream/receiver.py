@@ -2,8 +2,9 @@
 import logging
 import json
 import zmq
+import time
 
-from gf_repstream.protocol import GFHeader
+from protocol import GFHeader
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +23,20 @@ class Receiver:
         self._mode = mode
         self._zmq_mode = zmq_mode
         # FIXME: correct gigafrost frame size
-        self._frame_block = 200
+        self._frame_block = 5
 
     def _decode_metadata(self, metadata):
         source = metadata.get("source")
         if source == 0:
             metadata["source"] = "gigafrost"
         return metadata
+
+    def timePassed(self, oldtime, seconds):
+        currenttime = time.time()
+        if currenttime - oldtime > seconds:
+            return True
+        else:
+            return False
 
     def start(self, io_threads, address):
         """Start the receiver loop.
@@ -51,23 +59,23 @@ class Receiver:
             zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
         elif self._zmq_mode.upper() == "PULL":
             zmq_socket = zmq_context.socket(zmq.PULL)
-        else: 
-            raise RuntimeError("Receiver input zmq mode not recognized (SUB/PULL).")
-
-
+        else:
+            raise RuntimeError(
+                "Receiver input zmq mode not recognized (SUB/PULL).")
 
         zmq_socket.connect(address)
         zmq_socket.setsockopt(zmq.LINGER, -1)
-        send_flag = False
+        send_flag = [False for i in range(len(self._streamer_tuples))]
         frame_counter = 0
         stride_counter = 0
+        send_every_sec_counter = [0 for i in range(len(self._streamer_tuples))]
         while not self._sentinel.is_set():
             # receives the data
             data = zmq_socket.recv_multipart()
             try:
                 metadata = json.loads(data[0].decode())
                 image_frame = metadata['frame']
-            except:
+            except BaseException:
                 raise RuntimeError("Problem decoding the Metadata...")
 
             for idx, stream in enumerate(self._streamer_tuples):
@@ -82,32 +90,41 @@ class Receiver:
                 elif stream_mode == "strides":
                     # mode strides: sends n frames and skip the next n frames
                     # n = send_output_param
-                    if send_flag:
-                        stride_counter = +1
-                        stream[0].append(data)
-                        if stride_counter == stream_param:
-                            send_flag = False
-                            stride_counter = 0
+                    if send_flag[idx]:
+                        stride_counter += 1
+                        if stride_counter <= stream_param:
+                            stream[0].append(data)
+                        elif stride_counter == 2 * stream_param:
+                            send_flag[idx] = False
                     else:
                         if image_frame % stream_param == 0:
-                            send_flag = True
+                            send_flag[idx] = True
                             stride_counter = 1
                             stream[0].append(data)
                 elif stream_mode == "send_every_nth_frame":
                     # mode send_every_nth_frame: sends Y frames every N frames
                     # Y: self._frame_block (defined on the init for now)
                     # N: send_output_param
-                    if send_flag:
+                    if send_flag[idx]:
                         frame_counter += 1
                         stream[0].append(data)
                         if frame_counter == self._frame_block:
-                            send_flag = False
+                            send_flag[idx] = False
                             frame_counter = 0
                     else:
                         if image_frame % stream_param == 0:
-                            send_flag = True
+                            send_flag[idx] = True
                             frame_counter = 1
                             stream[0].append(data)
-	
-        logger.debug(f"End signal received... finishing receiver thread...")
+                elif stream_mode == "send_every_sec":
+                    # wait for seconds
+                    if send_flag[idx]:
+                        if self.timePassed(
+                                send_every_sec_counter[idx], stream_param):
+                            send_flag[idx] = False
+                    else:
+                        send_every_sec_counter[idx] = time.time()
+                        send_flag[idx] = True
+                        stream[0].append(data)
 
+        logger.debug(f"End signal received... finishing receiver thread...")

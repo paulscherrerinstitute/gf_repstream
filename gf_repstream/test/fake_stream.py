@@ -19,7 +19,6 @@ def main():
                         help='Address - format "tcp://<address>:<port>" (default: "tcp://*:9609")')
     parser.add_argument('-m', '--mode', default='push', type=str,
                         help='Communication mode - either push (default) or pub')
-
     parser.add_argument('-i', '--n-images', default=100, type=int,
                         help='Number of images to be streamed')
 
@@ -29,7 +28,7 @@ def main():
     out_address = arguments.address
     mode = arguments.mode
     n_images = arguments.n_images
-    total_images = 1000
+    total_images = 5000
 
     context = zmq.Context()
 
@@ -48,7 +47,6 @@ def main():
     else:
         counter = 0
         while True and counter < 1000:
-
             try: 
                 files = sorted(listdir(folder))
                 for index, raw_file in enumerate(files):
@@ -57,7 +55,7 @@ def main():
                         continue
 
                     with open(filename, mode='rb') as file_handle:
-                        time.sleep(.01)
+                        time.sleep(.5)
                         send_more = False
                         if index + 1 < len(files):  # Ensure that we don't run out of bounds
                             send_more = raw_file.split('_')[0] == files[index + 1].split('_')[0]
@@ -75,8 +73,9 @@ def main():
                             header['i_image'] = counter
                             header['status'] = 0
                             header['detector_name'] = 'Gigafrost'
+                            # print('header', header)
                             zmq_socket.send_json(header, flags=zmq.SNDMORE)
-                            # print("Sent ", counter)
+                            print("Sent ", counter)
                             counter += 1
                         else:
                             zmq_socket.send(file_handle.read(), flags=0)
