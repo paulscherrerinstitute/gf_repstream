@@ -6,11 +6,11 @@ import time
 
 from protocol import GFHeader
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger("RestStreamRepeater")
 
 
 class Receiver:
-    def __init__(self, tuples_list, sentinel, mode, zmq_mode):
+    def __init__(self, tuples_list, sentinel, mode, zmq_mode, frame_block):
         """Initialize a gigafrost receiver.
 
         Args:
@@ -18,12 +18,14 @@ class Receiver:
             sentinel: Flag object to halt execution.
 
         """
+        _logger.debug(
+                f"RepStreamer.Receiver __init__ ..."
+            )
         self._streamer_tuples = tuples_list
         self._sentinel = sentinel
         self._mode = mode
         self._zmq_mode = zmq_mode
-        # FIXME: correct gigafrost frame size
-        self._frame_block = 5
+        self._frame_block = frame_block
 
     def _decode_metadata(self, metadata):
         source = metadata.get("source")
@@ -32,6 +34,7 @@ class Receiver:
         return metadata
 
     def timePassed(self, oldtime, seconds):
+
         currenttime = time.time()
         if currenttime - oldtime > seconds:
             return True
@@ -48,8 +51,8 @@ class Receiver:
         Raises:
             RuntimeError: Unknown metadata format.
         """
-        logger.debug(
-            f"GF_repstream.Receiver class with: io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode})"
+        _logger.debug(
+            f"GF_repstream.Receiver start (io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode}))"
         )
 
         # prepares the zmq socket to receive data
@@ -74,7 +77,7 @@ class Receiver:
             data = zmq_socket.recv_multipart()
             try:
                 metadata = json.loads(data[0].decode())
-                image_frame = metadata['frame']
+                image_frame = metadata["frame"]
             except BaseException:
                 raise RuntimeError("Problem decoding the Metadata...")
 
@@ -127,4 +130,4 @@ class Receiver:
                         send_flag[idx] = True
                         stream[0].append(data)
 
-        logger.debug(f"End signal received... finishing receiver thread...")
+        _logger.debug(f"End signal received... finishing receiver thread...")

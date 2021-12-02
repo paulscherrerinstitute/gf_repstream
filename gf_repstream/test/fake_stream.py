@@ -6,7 +6,7 @@ import zmq
 import sys
 import json
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, isdir
 import argparse
 
 
@@ -44,6 +44,8 @@ def main():
     time.sleep(1)
     if folder == "":
         raise RuntimeError('Failed to locate the folder with raw files...')
+    elif not isdir(folder):
+        raise RuntimeError('Specified folder doesnt exist...')
     else:
         counter = 0
         while True and counter < 1000:

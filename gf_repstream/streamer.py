@@ -5,12 +5,21 @@ import time
 import zmq
 import sys
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger("RestStreamRepeater")
 
 
 class Streamer:
-    def __init__(self, name, deque, sentinel, port,
-                 zmq_mode, mode_metadata, idle_time=1):
+    def __init__(
+        self,
+        name,
+        deque,
+        sentinel,
+        port,
+        zmq_mode,
+        mode_metadata,
+        io_threads,
+        idle_time=1,
+    ):
         """Initialize a gigafrost streamer.
 
         Args:
@@ -24,23 +33,30 @@ class Streamer:
         self._idle_time = idle_time
         self._last_sent_frame = -1
         self._counter = 0
+        self._alive = False
         self._sentinel = sentinel
+        self._io_threads = io_threads
         self._port = port
         self._zmq_mode = zmq_mode
         self._mode_metadata = mode_metadata
+        _logger.debug(
+            f"RepStream.Streamer with: io_threads {self._io_threads} and port {self._port} (zmq mode {self._zmq_mode})"
+        )
+
+
 
     def add_writer_header(self, metadata):
-        metadata['image_attributes']['image_number'] = self._counter
-        metadata['frame'] = self._counter
-        metadata['output_file'] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
-        metadata['run_id'] = 0
-        metadata['n_images'] = 10000
-        metadata['i_image'] = self._counter
-        metadata['status'] = 0
-        metadata['detector_name'] = 'Gigafrost'
+        metadata["image_attributes"]["image_number"] = self._counter
+        metadata["frame"] = self._counter
+        metadata["output_file"] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
+        metadata["run_id"] = 0
+        metadata["n_images"] = 10000
+        metadata["i_image"] = self._counter
+        metadata["status"] = 0
+        metadata["detector_name"] = "Gigafrost"
         return metadata
 
-    def start(self, io_threads, address):
+    def start(self):
         """Start the streamer loop.
 
         Args:
@@ -48,27 +64,32 @@ class Streamer:
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
 
         """
-
-        logger.debug(
-            f"GF_repstream.Streamer with: io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode})"
+        _logger.debug(
+            f"RepStream.Streamer {self._name} starting to stream... "
         )
 
+        address = "tcp://*:"+(str(self._port))
+        
         # prepares the zmq socket to send out data PUB/SUB (bind)
-        zmq_context = zmq.Context(io_threads=io_threads)
+        self._sentinel.clear()
+        zmq_context = zmq.Context(io_threads=self._io_threads)
         zmq_socket = zmq_context.socket(self._zmq_mode)
-        zmq_socket.bind(address)
         zmq_socket.setsockopt(zmq.LINGER, -1)
+        try:
+            zmq_socket.bind(address)
+        except zmq.error.ZMQError:
+            _logger.debug(f"RepStream.Streamer socket can't bind to address.")
+            pass
 
         while not self._sentinel.is_set():
             if self._deque:
                 data = self._deque.popleft()
                 # FIXME: adjusts to test the std-det-writer
-                if self._name == 'std-det-writer':
+                if self._name == "std-det-writer":
                     zmq_socket.send_json(
-                        self.add_writer_header(
-                            json.loads(
-                                data[0].decode())),
-                        flags=zmq.SNDMORE)
+                        self.add_writer_header(json.loads(data[0].decode())),
+                        flags=zmq.SNDMORE,
+                    )
                     zmq_socket.send(data[1], flags=0)
                 else:
                     zmq_socket.send_multipart(data)
@@ -76,4 +97,5 @@ class Streamer:
             else:
                 # nothing to stream
                 time.sleep(self._idle_time)
-        logger.debug(f"End signal received... finishing streamer thread...")
+        zmq_socket.close()
+        _logger.debug(f"RepStream.Streamer {self._name} closing thread...")
