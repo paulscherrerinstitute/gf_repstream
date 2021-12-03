@@ -2,11 +2,63 @@
 
 <!-- ABOUT THE PROJECT -->
 ## GF_REPSTREAM
-This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to external components. This is developed for usage with Gigafrost camera stream at the TOMCAT beamline at Paul Scherrer Institute.
+This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to multiple clients/external components. It works controlled via a REST api that allows the user to configure and control it.
 
-The fake gigafrost stream generator was done inspired/using https://github.com/paulscherrerinstitute/mflow
+NOTE: The default mode assumes that one stream is directed to the [std-det-writer](https://github.com/paulscherrerinstitute/sf_daq_buffer/tree/eiger/std-det-writer) for saving the incoming stream, it is necessary to also configure the writer details (outputfile, number of images, etc...)
 
-<!-- USAGE EXAMPLES -->
+The fake gigafrost stream generator was done inspired in [mflow](https://github.com/paulscherrerinstitute/mflow)
+
+The streamer has 4 states: INITIALIZED, RUNNING, ERROR, STOPPED. 
+
+## REST SERVER
+
+To start the rest server and prepare the streamer object, run app.py
+```bash
+python app.py
+```
+
+## Endpoints Overview
+
+- ``/initialize`` (POST): prepares the streamer object with the defined configuration.
+- ``/get_status`` (GET): gets the current configuration and state of the streamer object
+- ``/get_state`` (GET): gets the state of the streamer object
+- ``/set_config_from_dict`` (POST): sets the configuration of the streamer object with via a json.
+    - The dictionary can have one or multiple the following keys: in_address, in_zmq_mode, io_threads, buffer_size, n_output_streams, send_output_mode, send_output_param, stream_ports, zmq_modes, mode_metadata, config_file, frame_block
+- ``/set_config_from_file`` (POST): sets the configuration of the streamer object by providing a path to a config file.
+- ``/set_writer_config`` (POST): Sets the writer configuration in the streamer object via a json. 
+    - The json must have the following keys: output_file, run_id, n_images, detector_name
+- ``/start`` (POST): Start the streamer object.
+- ``/stop`` (POST): Stop the streamer object.
+
+## Configuration parameters overview
+- in_address: Incoming ZMQ address. Defaults to "tcp://xbl-daq-23:9990".
+- in_zmq_mode: Incoming ZMQ mode. Defaults to PULL.
+- io_threads: ZMQ IO threads. Defaults to 1. 
+- buffer_size:  ZMQ buffer size. Defaults to 5000.
+- n_output_streams: Number of output streams. Defaults to None. 
+- send_output_mode: List containing the ZMQ mode of the generated output streams. Defaults to None.
+- send_output_param: List containing the output streams configuration parameter. Defaults to None.
+- stream_ports: List containing the output port of the output streams.
+- zmq_modes: List containing the ZMQ connection modes of the output streams.
+- config_file: Path to the config file. Defaults to None.
+- frame_block:Total number of frames to create a block. Defaults to 15
+
+## Writer parameters overview
+- ``output_file``: name of the output file
+- ``run_id``: id of the run (or acquisition)
+- ``n_images``: total number of images that will be written to the output file.
+- ``detector_name``: name of the detector/camera.
+
+### send_output_mode and send_output_param
+- ``send_every_nth``: sends every nth frame (n is defined by send_output_param)
+- ``send_every_sec``: sends a frame every n seconds (n is defined by send_output_param)
+- ``send_every_nth_frame``: sends Y frames every N frames (Y is defined by send_output_param and N is defined by the parameter frame_block)
+    - Note that frame_block is fixed and can not be adjusted if multiple streams are using the ``send_every_nth_frame`` mode.
+- ``strides``: sends n frames and skip the next n frames (n is defined by send_output_param)
+
+
+<!-- 
+<!-- USAGE EXAMPLES 
 ## Usage
 ```bash
     usage: gf_repstream [-h] [-v] [--in-address PROTOCOL://HOST:PORT] [--in-zmq-mode IN_ZMQ_MODE] [--out-init-port OUT_INIT_PORT] [--io-threads IO_THREADS] [--buffer-size BUFFER_SIZE]
@@ -43,7 +95,7 @@ usage example via config file:
 usage example via command line:
 ```bash
     python -m gf_repstream.cli --in-address tcp://localhost:9609 --out-init-port 9610 --n-outputs 3 --send-every-nth 1 2 10
-```
+``` -->
 
 ### Fake stream
 
@@ -66,6 +118,8 @@ If header format is the protocol TestMetadata, one can use ```-f TestMetadata```
 
 ### Building the package
 
+From the home directory, run:
+
 ```bash
     conda build conda-recipe
 ```
@@ -76,11 +130,11 @@ If header format is the protocol TestMetadata, one can use ```-f TestMetadata```
     anaconda upload <path_to.tar.bz2_file>
 ```
 
-<!--### Installing the package
+### Installing the package
 
 ```bash
     conda install -c paulscherrerinstitute gf_repstream
-```-->
+```
 
 
 <!-- LICENSE -->
@@ -92,3 +146,4 @@ See `LICENSE` for more information.
 ## Authors
 
 * Leonardo Hax Damiani (leonardo.hax@psi.ch)
+* Christian M. Schlepütz (christian.schlepuetz@psi.ch)
