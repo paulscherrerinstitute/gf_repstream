@@ -5,6 +5,8 @@ import time
 import zmq
 import sys
 
+from utils import valid_writer_config
+
 _logger = logging.getLogger("RestStreamRepeater")
 
 
@@ -16,16 +18,20 @@ class Streamer:
         sentinel,
         port,
         zmq_mode,
-        mode_metadata,
         io_threads,
+        writer_config,
         idle_time=1,
     ):
-        """Initialize a gigafrost streamer.
+        """Initialize a streamer thread.
 
         Args:
-            name: name of the streamer
-            deque: shared deque that data will be fetched from
+            name: name of the streamer thread
+            deque: shared deque from which the data will be fetched.
             sentinel: Flag object to halt execution.
+            port: Port that will be used for this thread's stream
+            zmq_mode: Zmq socket mode of this thread's stream (PUB, PULL)
+            io_threads: Number of threads that will be used.
+            writer_config: Dictionary that contains the writer configuration parameters.
             idle_time: idle time to wait when the queue is empty
         """
         self._name = name
@@ -38,22 +44,22 @@ class Streamer:
         self._io_threads = io_threads
         self._port = port
         self._zmq_mode = zmq_mode
-        self._mode_metadata = mode_metadata
+        self._writer_config = writer_config
         _logger.debug(
             f"RepStream.Streamer with: io_threads {self._io_threads} and port {self._port} (zmq mode {self._zmq_mode})"
         )
 
-
+    
 
     def add_writer_header(self, metadata):
         metadata["image_attributes"]["image_number"] = self._counter
         metadata["frame"] = self._counter
-        metadata["output_file"] = "/home/dbe/git/sf_daq_buffer/gf/output.h5"
-        metadata["run_id"] = 0
-        metadata["n_images"] = 10000
+        metadata["output_file"] = self._writer_config["output_file"]
+        metadata["run_id"] = self._writer_config["run_id"]
+        metadata["n_images"] = self._writer_config["n_images"]
         metadata["i_image"] = self._counter
         metadata["status"] = 0
-        metadata["detector_name"] = "Gigafrost"
+        metadata["detector_name"] = self._writer_config["detector_name"]
         return metadata
 
     def start(self):

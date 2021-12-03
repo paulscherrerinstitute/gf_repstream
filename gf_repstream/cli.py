@@ -17,7 +17,8 @@ from receiver import Receiver
 from streamer import Streamer
 from utils import (validate_zmq_mode, 
                     validate_network_address, 
-                    validate_ip_address)
+                    validate_ip_address,
+                    valid_writer_config)
 
 class NoTraceBackWithLineNumber(Exception):
     def __init__(self, msg):
@@ -48,9 +49,9 @@ class SRepeater(object):
         buffer_size=5000,
         n_output_streams=None,
         send_output_mode=None,
-        send_output_param=None,
-        mode_metadata="gf",
+        send_output_param=None,writer
         config_file=None,
+        writer_config={},
         frame_block=15
     ):
         """[summary]
@@ -63,7 +64,6 @@ class SRepeater(object):
             n_output_streams (int, optional): Number of output streams. Defaults to None.
             send_output_mode (list, optional): List containing the ZMQ mode of the generated output streams. Defaults to None.
             send_output_param (list, optional): List containing the output streams configuration parameter. Defaults to None.
-            mode_metadata (str, optional): [description]. Defaults to 'gf'.
             config_file (str, optional): Path to the config file. Defaults to None.
             frame_block (int, optional): Total number of frames to create a block. Defaults to 15
 
@@ -80,9 +80,9 @@ class SRepeater(object):
         self._stream_ports = []
         self._zmq_modes = []
         self._stream_names = []
-        self._mode_metadata = mode_metadata
         self._config_file = config_file
         self._frame_block = frame_block
+        self._writer_config = writer_config
         # not part of config
         self._r = None
         self._config_chaged = False
@@ -173,6 +173,7 @@ class SRepeater(object):
         _logger.debug(
             f"RepStreamer.CLI load_config from streamer object properties ..."
         )
+        self._exit_event.clear()
         return self.get_config()
 
     def set_config_dict(self, dict_config):
@@ -203,8 +204,6 @@ class SRepeater(object):
                 self._stream_ports = value
             elif key == "zmq_modes":
                 self._zmq_modes = value
-            elif key == "mode_metadata":
-                self._mode_metadata = value
             elif key == "config_file":
                 self._config_file = value
             elif key == "frame_block":
@@ -230,6 +229,16 @@ class SRepeater(object):
 
     def set_event(self):
         self._exit_event.set()
+
+    def set_writer_config(self, writer_dict):
+        """Method that sets the writer configuration parameters which are
+        necessary to prepare the stream for the std-daq-writer.
+
+        Args:
+            writer_dict (dict): Dictionary containing the writer information.
+        """
+        self._writer_config = writer_dict
+        return 
 
     def start(self):
         """Starts the threaded receiver and streamers based on the configuration file previously provided.
@@ -271,8 +280,8 @@ class SRepeater(object):
                     sentinel=self._exit_event,
                     port=self._stream_ports[i],
                     zmq_mode=self._zmq_modes[i],
-                    mode_metadata=self._mode_metadata,
                     io_threads=self._io_threads,
+                    writer_config=self._writer_config
                 )
             )
             receiver_tuples.append(
@@ -284,7 +293,6 @@ class SRepeater(object):
         receiver = Receiver(
             tuples_list=receiver_tuples,
             sentinel=self._exit_event,
-            mode=self._mode_metadata,
             zmq_mode=self._in_zmq_mode,
             frame_block=self._frame_block
         )

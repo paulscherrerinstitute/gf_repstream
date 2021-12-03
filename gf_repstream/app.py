@@ -26,10 +26,9 @@ _logger = logging.getLogger("RestStreamRepeater")
 
 app = Flask("RestStreamRepeater")
 app.config["state"] = None
+app.config['valid_config'] = False
+app.config['valid_writer_config'] = False
 Session(app)
-
-# configure, get_config, set_config, get_state, start, stop
-
 
 def start_rest_api(port, config_file):
     """Function that starts the rest server and listen to the commands that control the stream repeater service.
@@ -42,7 +41,8 @@ def start_rest_api(port, config_file):
     # FIXME: static file should be loaded from the package via pkg_resources prior to deployment
     # repeater = SRepeater(config_file='./static/repstream_config.json')
     repeater = SRepeater(config_file="./static/fake_stream.json")
-    app.config["state"] = State.INITIALIZED
+    app.config['valid_config'] = True
+    app.config["state"] = State.STOPPED
 
     @app.route("/initialize", methods=["POST"])
     def configure():
@@ -53,9 +53,11 @@ def start_rest_api(port, config_file):
         """
         if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR]:
             try:
+                repeater.set_event()
                 config = repeater.load_config()
-                app.config["state"] = State.INITIALIZED
-
+                app.config['valid_config'] = True
+                if app.config['valid_config'] and app.config['valid_writer_config']:
+                    app.config["state"] = State.INITIALIZED
             except BaseException as err:
                 return make_response(
                     jsonify(
@@ -146,7 +148,9 @@ def start_rest_api(port, config_file):
             try:
                 repeater.set_event()
                 repeater.set_config_dict(dict_config)
-                app.config["state"] = State.INITIALIZED
+                app.config['valid_config'] = True
+                if app.config['valid_config'] and app.config['valid_writer_config']:
+                    app.config["state"] = State.INITIALIZED
                 _logger.debug(
                     f"Service Rest Stream Repeater: set_config_from_dict {dict_config}"
                 )
@@ -187,31 +191,90 @@ def start_rest_api(port, config_file):
         Returns:
             HTTP response with status of the request and the state of the stream repeater object.
         """
-        config_file = request.json
-        try:
-            new_config_file = config_file["config_file"]
-            repeater.set_config_file(new_config_file)
-            app.config["state"] = State.INITIALIZED
-            _logger.debug(
-                f"Service Rest Stream Repeater: Initialized with the config file {new_config_file}"
-            )
-        except BaseException as err:
-            app.config["state"] = State.ERROR
+        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR]:
+            config_file = request.json
+            try:
+                new_config_file = config_file["config_file"]
+                repeater.set_config_file(new_config_file)
+                app.config['valid_config'] = True
+                if app.config['valid_config'] and app.config['valid_writer_config']:
+                    app.config["state"] = State.INITIALIZED
+                
+                _logger.debug(
+                    f"Service Rest Stream Repeater: Initialized with the config file {new_config_file}"
+                )
+            except BaseException as err:
+                app.config["state"] = State.ERROR
+                return make_response(
+                    jsonify(
+                        {"response": "error", "error": f"Unexpected {err=}, {type(err)=}"}
+                    ),
+                    200,
+                )
             return make_response(
                 jsonify(
-                    {"response": "error", "error": f"Unexpected {err=}, {type(err)=}"}
+                    {
+                        "response": "success",
+                        "state": (app.config["state"].name, app.config["state"].value),
+                    }
                 ),
                 200,
             )
-        return make_response(
-            jsonify(
-                {
-                    "response": "success",
-                    "state": (app.config["state"].name, app.config["state"].value),
-                }
-            ),
-            200,
-        )
+        else:
+            state_return = (app.config["state"].name, app.config["state"].value)
+            return make_response(
+                jsonify(
+                    {
+                        "response": "error",
+                        "error": f"Streamer in state {state_return[0]} can not be configured.",
+                        "state": state_return,
+                    }
+                ),
+                200,
+            )
+
+    @app.route("/set_writer_config", methods=["POST"])
+    def set_writer_config():
+        """POST request to set the writer configurations in the streamer.
+        """
+        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR]:
+            writer_dict = request.json
+            try:
+                app.config['valid_writer_config'] = repeater.set_writer_config(writer_dict)
+                if app.config['valid_writer_config'] and app.config['valid_config']:
+                    app.config["state"] = State.INITIALIZED
+                _logger.debug(
+                    f"Service Rest Stream Repeater: Writer configuration {writer_dict}"
+                )
+            except BaseException as err:
+                app.config["state"] = State.ERROR
+                return make_response(
+                    jsonify(
+                        {"response": "error", "error": f"Unexpected {err=}, {type(err)=}"}
+                    ),
+                    200,
+                )
+            return make_response(
+                jsonify(
+                    {
+                        "response": "success",
+                        "state": (app.config["state"].name, app.config["state"].value),
+                    }
+                ),
+                200,
+            )
+        else:
+            state_return = (app.config["state"].name, app.config["state"].value)
+            return make_response(
+                jsonify(
+                    {
+                        "response": "error",
+                        "error": f"Streamer in state {state_return[0]} can not be configured.",
+                        "state": state_return,
+                    }
+                ),
+                200,
+            )
 
     @app.route("/start", methods=["POST"])
     def start_streamer():
@@ -220,11 +283,13 @@ def start_rest_api(port, config_file):
         Returns:
             HTTP response with status of the request and the state of the stream repeater object.
         """
-        if app.config["state"] == State.INITIALIZED:
+        if app.config["state"] == State.INITIALIZED and app.config['valid_writer_config'] and app.config['valid_config']:
             try:
                 _logger.debug(f"Service Rest Stream Repeater: starting...")
                 repeater.start()
                 app.config["state"] = State.RUNNING
+                app.config['valid_writer_config'] = False
+                app.config['valid_config'] = False
             except BaseException as err:
                 app.config["state"] = State.ERROR
                 return make_response(
@@ -266,6 +331,8 @@ def start_rest_api(port, config_file):
                 _logger.debug(f"Service Rest Stream Repeater: stopping...")
                 repeater.stop()
                 app.config["state"] = State.STOPPED
+                app.config['valid_writer_config'] = False
+                app.config['valid_config'] = False
             except BaseException as err:
                 app.config["state"] = State.ERROR
                 return make_response(

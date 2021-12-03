@@ -60,6 +60,13 @@ def validate_network_address(network_address, protocol='tcp'):
         if bool(re.match(connection_pattern, network_address)):
             return network_address
 
+def valid_writer_config(writer_dict):
+    mandatory_keys = ["output_file", "run_id","n_images", "detector_name"]
+    for mandatory_key in mandatory_keys:
+        if mandatory_key not in writer_dict:
+            return False
+    return True
+
 def validate_ip_address(ip_address):
     """
     Check whether the supplied string is a valid IP address.

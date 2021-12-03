@@ -10,7 +10,7 @@ _logger = logging.getLogger("RestStreamRepeater")
 
 
 class Receiver:
-    def __init__(self, tuples_list, sentinel, mode, zmq_mode, frame_block):
+    def __init__(self, tuples_list, sentinel, zmq_mode, frame_block):
         """Initialize a gigafrost receiver.
 
         Args:
@@ -23,7 +23,6 @@ class Receiver:
             )
         self._streamer_tuples = tuples_list
         self._sentinel = sentinel
-        self._mode = mode
         self._zmq_mode = zmq_mode
         self._frame_block = frame_block
 
