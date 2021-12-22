@@ -49,7 +49,7 @@ class SRepeater(object):
         buffer_size=5000,
         n_output_streams=None,
         send_output_mode=None,
-        send_output_param=None,writer
+        send_output_param=None,
         config_file=None,
         writer_config={},
         frame_block=15
