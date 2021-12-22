@@ -88,9 +88,7 @@ class SRepeater(object):
         self._config_chaged = False
         self._exit_event = Event()
         self._list_threads = []
-        _logger.debug(
-                f"RepStreamer.Cli initializing..."
-            )
+        _logger.debug("RepStreamer.Cli initializing...")
         # load config file
         if self._config_file is not None:
             self.load_config()
@@ -119,9 +117,7 @@ class SRepeater(object):
         Returns:
             dict: dictionary containing the configuration of the streamer object class.
         """
-        _logger.debug(
-                f"RepStreamer.CLI get_config ..."
-            )
+        _logger.debug("RepStreamer.CLI get_config ...")
         return dict(self)
 
     def load_config(self):
@@ -135,9 +131,7 @@ class SRepeater(object):
         """
         # loads config
         if not self._config_chaged:
-            _logger.debug(
-                f"RepStreamer.CLI load_config from {self._config_file} ..."
-            )
+            _logger.debug("RepStreamer.CLI load_config from {self._config_file} ...")
             with open(self._config_file) as f:
                 # FIXME: static default file shipped with conda package
                 # needs to be imported using pkg_resources
@@ -170,9 +164,7 @@ class SRepeater(object):
                     raise RepStreamError("Gf_repstream config file with problems.")
                 self._n_output_streams = len(json_config["out-streams"])
                 self._config_chaged = False
-        _logger.debug(
-            f"RepStreamer.CLI load_config from streamer object properties ..."
-        )
+        _logger.debug("RepStreamer.CLI load_config from streamer object properties ...")
         self._exit_event.clear()
         return self.get_config()
 
@@ -182,9 +174,7 @@ class SRepeater(object):
         Args:
             dict_config (dict): Path to the configuration file that will be stored.
         """
-        _logger.debug(
-                f"RepStreamer set_config_dict with {self._config_file} ..."
-            )
+        _logger.debug("RepStreamer set_config_dict with {self._config_file} ...")
         for key, value in dict_config.items():
             if key == "in_address":
                 self._in_address = value
@@ -220,9 +210,7 @@ class SRepeater(object):
         Args:
             path_config_file (str): Path to the configuration file that will be stored.
         """
-        _logger.debug(
-                f"RepStreamer set_config_file with {path_config_file} ..."
-            )
+        _logger.debug("RepStreamer set_config_file with {path_config_file} ...")
         self._config_file = path_config_file
         self.load_config()
         return
@@ -247,9 +235,7 @@ class SRepeater(object):
         Raises:
             RuntimeError: When number of output paramers and streamers are not correct.
         """
-        _logger.debug(
-                f"RepStreamer start ..."
-            )
+        _logger.debug("RepStreamer start ...")
         if self._exit_event.is_set():
             self._exit_event.clear()
         
