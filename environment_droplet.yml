@@ -29,6 +29,7 @@ dependencies:
   - cython=0.29.24=py38h709712a_0
   - expat=2.4.1=h9c3ff4c_0
   - filelock=3.0.12=pyh9f0ad1d_0
+  - flask=2.0.2=pyhd3eb1b0_0
   - freetype=2.10.4=h0708190_1
   - glob2=0.7=py_0
   - h5py=2.10.0=nompi_py38h513d04c_102
