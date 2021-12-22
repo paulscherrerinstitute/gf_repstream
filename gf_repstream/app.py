@@ -40,7 +40,7 @@ def start_rest_api(port, config_file):
     """
     # FIXME: static file should be loaded from the package via pkg_resources prior to deployment
     # repeater = SRepeater(config_file='./static/repstream_config.json')
-    repeater = SRepeater(config_file="./static/fake_stream.json")
+    repeater = SRepeater(config_file=config_file)
     app.config['valid_config'] = True
     app.config["state"] = State.STOPPED
 
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--config-file",
-        default="./static/repstream_config.json",
+        default="repstream_config.json",
         help="Default config file.",
     )
 

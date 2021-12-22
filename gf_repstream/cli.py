@@ -85,7 +85,7 @@ class SRepeater(object):
         self._writer_config = writer_config
         # not part of config
         self._r = None
-        self._config_chaged = False
+        self._config_changed = False
         self._exit_event = Event()
         self._list_threads = []
         _logger.debug("RepStreamer.Cli initializing...")
@@ -101,7 +101,7 @@ class SRepeater(object):
         Yields:
             Prepares a list of the internal variables of the streamer object with name and value
         """
-        ignore_list = ["config_chaged", "_r", "_exit_event", "_list_threads"]
+        ignore_list = ["config_changed", "_r", "_exit_event", "_list_threads"]
         # first start by grabbing the Class items
         iters = dict((x, y) for x, y in self.__dict__.items() if (x[:2] != "__"))
         # then update the class items with the instance items
@@ -130,7 +130,7 @@ class SRepeater(object):
             RuntimeError: Streamer object config file with problems.
         """
         # loads config
-        if not self._config_chaged:
+        if not self._config_changed:
             _logger.debug("RepStreamer.CLI load_config from {self._config_file} ...")
             with open(self._config_file) as f:
                 # FIXME: static default file shipped with conda package
@@ -163,7 +163,7 @@ class SRepeater(object):
                 except Exception as e:
                     raise RepStreamError("Gf_repstream config file with problems.")
                 self._n_output_streams = len(json_config["out-streams"])
-                self._config_chaged = False
+                self._config_changed = False
         _logger.debug("RepStreamer.CLI load_config from streamer object properties ...")
         self._exit_event.clear()
         return self.get_config()
@@ -199,7 +199,7 @@ class SRepeater(object):
             elif key == "frame_block":
                 self._frame_block = value
         if self.validate_configuration():
-            self._config_chaged = True
+            self._config_changed = True
             self.load_config()
         return 
 
