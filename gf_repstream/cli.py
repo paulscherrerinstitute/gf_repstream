@@ -226,7 +226,7 @@ class SRepeater(object):
             writer_dict (dict): Dictionary containing the writer information.
         """
         self._writer_config = writer_dict
-        return 
+        return True
 
     def start(self):
         """Starts the threaded receiver and streamers based on the configuration file previously provided.
