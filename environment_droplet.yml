@@ -133,6 +133,7 @@ dependencies:
     - click==8.0.1
     - codespell==2.1.0
     - flake8==3.9.2
+    - flask-session==0.4.0
     - isort==5.8.0
     - mccabe==0.6.1
     - mypy-extensions==0.4.3
