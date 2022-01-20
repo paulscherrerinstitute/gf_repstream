@@ -361,7 +361,7 @@ def start_rest_api(port, config_file):
                 200,
             )
 
-    app.run(host="127.0.0.1", port=port, threaded=True)
+    app.run(host="0.0.0.0", port=port, threaded=True, debug=True)
 
 
 if __name__ == "__main__":
