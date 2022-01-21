@@ -16,8 +16,8 @@ dependencies:
   - brotlipy=0.7.0=py38h497a2fe_1001
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.16.1=h7b6447c_0
-  - ca-certificates=2021.5.30=ha878542_0
-  - certifi=2021.5.30=py38h578d9bd_0
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.6.20=py38_0
   - cffi=1.14.4=py38ha312104_0
   - chardet=4.0.0=py38h578d9bd_1
   - cmake=3.21.2=h8897547_0
@@ -27,9 +27,10 @@ dependencies:
   - conda-package-handling=1.7.3=py38h497a2fe_0
   - cryptography=3.4.7=py38ha5dfef3_0
   - cython=0.29.24=py38h709712a_0
+  - dataclasses=0.8=pyh6d0b6a4_7
   - expat=2.4.1=h9c3ff4c_0
   - filelock=3.0.12=pyh9f0ad1d_0
-  - flask=2.0.2=pyhd3eb1b0_0
+  - flask=1.1.2=py_0
   - freetype=2.10.4=h0708190_1
   - glob2=0.7=py_0
   - h5py=2.10.0=nompi_py38h513d04c_102
@@ -37,6 +38,7 @@ dependencies:
   - icu=58.2=he6710b0_3
   - idna=2.10=pyh9f0ad1d_0
   - importlib-metadata=4.0.1=py38h578d9bd_0
+  - itsdangerous=2.0.1=pyhd3eb1b0_0
   - jbig=2.1=h7f98852_2003
   - jinja2=3.0.1=pyhd8ed1ab_0
   - jpeg=9d=h36c2ea0_0
@@ -82,7 +84,7 @@ dependencies:
   - numpy=1.20.2=py38h9894fe3_0
   - olefile=0.46=pyh9f0ad1d_1
   - openjpeg=2.4.0=hb52868f_1
-  - openssl=1.1.1l=h7f98852_0
+  - openssl=1.1.1m=h7f8727e_0
   - packaging=21.0=pyhd8ed1ab_0
   - param=1.9.3=py_0
   - patchelf=0.11=he1b5a44_0
@@ -120,6 +122,7 @@ dependencies:
   - tqdm=4.61.0=pyhd8ed1ab_0
   - typing_extensions=3.10.0.0=pyha770c72_0
   - urllib3=1.26.4=pyhd8ed1ab_0
+  - werkzeug=2.0.2=pyhd3eb1b0_0
   - wheel=0.36.2=pyhd3deb0d_0
   - xz=5.2.5=h516909a_1
   - yaml=0.2.5=h516909a_0
@@ -130,6 +133,7 @@ dependencies:
   - pip:
     - autopep8==1.5.7
     - black==21.8b0
+    - cachelib==0.4.1
     - click==8.0.1
     - codespell==2.1.0
     - flake8==3.9.2
