@@ -239,6 +239,7 @@ class SRepeater(object):
         if self._exit_event.is_set():
             self._exit_event.clear()
         
+        
         q_list = []
         streamer_list = []
         receiver_tuples = []
@@ -255,6 +256,9 @@ class SRepeater(object):
                 "Problem with the number of output streams, modes and parameters. They must be identical."
             )
 
+        # zmq context 
+        zmq_context = zmq.Context(io_threads=self._io_threads)
+
         for i in range(self._n_output_streams):
             # deque for each output stream
             q_list.append(deque(maxlen=self._buffer_size))
@@ -266,7 +270,7 @@ class SRepeater(object):
                     sentinel=self._exit_event,
                     port=self._stream_ports[i],
                     zmq_mode=self._zmq_modes[i],
-                    io_threads=self._io_threads,
+                    zmq_context = zmq_context,
                     writer_config=self._writer_config
                 )
             )
@@ -275,27 +279,28 @@ class SRepeater(object):
                 (self._send_output_mode[i], self._send_output_param[i]))
             )
 
-        # Receiver object with the streamer and their queues
+                # Receiver object with the streamer and their queues
         receiver = Receiver(
             tuples_list=receiver_tuples,
             sentinel=self._exit_event,
             zmq_mode=self._in_zmq_mode,
+            zmq_context=zmq_context,
             frame_block=self._frame_block
         )
 
         # Prepares receiver thread and starts it
         start_receiver = partial(receiver.start, 
-                                 self._io_threads, 
                                  self._in_address)
         self._r = Thread(target=start_receiver, daemon=True)
 
+        
         # Prepares the streamers and starts them
         self._list_threads = []
         for i in range(self._n_output_streams):
             self._list_threads.append(
                 Thread(target=partial(streamer_list[i].start), 
                     daemon=True))
-
+        
         self._r.start()
         for i in range(self._n_output_streams):
             self._list_threads[i].start()

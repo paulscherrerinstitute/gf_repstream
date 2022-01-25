@@ -11,8 +11,8 @@ def main():
 
     parser = argparse.ArgumentParser(description='Consumer GF Stream')
 
-    parser.add_argument('-a', '--address', default="tcp://localhost:9610", type=str,
-                        help='Address "tcp://<address>:<port>" (default: "tcp://localhost:9999")')
+    parser.add_argument('-a', '--address', default="tcp://localhost:9609", type=str,
+                        help='Address "tcp://<address>:<port>" (default: "tcp://localhost:9609")')
     parser.add_argument('-m', '--mode', default='pull', type=str,
                         help='Communication mode - either pull (default) or sub')
     parser.add_argument('-f', '--format', default='file', type=str,

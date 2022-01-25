@@ -1,34 +1,27 @@
 {
-    "in-stream": [
-        // "in_backend":{
-        //     "zmq_mode": "PULL",
-        //     "address": "tcp://localhost:9609"
-        // }
+    "in-stream":
         {   "name": "in_backend",
             "zmq_mode": "PULL",
             "address": "tcp://localhost:9609"
-        }
-    ],
-	"out-streams": [
-        // "writer":{
-        //     "zmq_mode": "PUSH",
-        //     "port": 9610,
-        //     "send_every_nth":1
-        // }
-        {   "name": "writer",
+        },
+	"out-streams":{
+        "writer":{
             "zmq_mode": "PUSH",
             "port": 9610,
-            "send_every_nth":1
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
         },
-        {   "name": "preview",
+        "preview":{
             "zmq_mode": "PUB",
             "port": 9611,
-            "send_every_nth":2
+            "send_output_mode":"send_every_nth",
+            "send_output_param":1
         },
-        {   "name": "gpu",
+        "gpu": {
             "zmq_mode": "PUB",
             "port": 9612,
-            "send_every_nth":10
+            "send_output_mode":"send_every_sec",
+            "send_output_param":2
         }
-    ]
+    }
 }
