@@ -18,7 +18,7 @@ class Streamer:
         sentinel,
         port,
         zmq_mode,
-        io_threads,
+        zmq_context,
         writer_config,
         idle_time=1,
     ):
@@ -30,7 +30,7 @@ class Streamer:
             sentinel: Flag object to halt execution.
             port: Port that will be used for this thread's stream
             zmq_mode: Zmq socket mode of this thread's stream (PUB, PULL)
-            io_threads: Number of threads that will be used.
+            zmq_context: Zmq context
             writer_config: Dictionary that contains the writer configuration parameters.
             idle_time: idle time to wait when the queue is empty
         """
@@ -41,17 +41,24 @@ class Streamer:
         self._counter = 0
         self._alive = False
         self._sentinel = sentinel
-        self._io_threads = io_threads
         self._port = port
         self._zmq_mode = zmq_mode
+        self._zmq_context = zmq_context
         self._writer_config = writer_config
         _logger.debug(
-            f"RepStream.Streamer with: io_threads {self._io_threads} and port {self._port} (zmq mode {self._zmq_mode})"
+            f"RepStream.Streamer at port {self._port} (zmq mode {self._zmq_mode})"
         )
 
     
 
     def add_writer_header(self, metadata):
+        """
+        Method to add the metadata header into the stream. 
+        Note: This is a workaround for the usage of the std-det-writer
+        without the writer_agent component from the std-daq.
+        The header information is defined via the repeater stream rest api 
+        interface.
+        """
         metadata["image_attributes"]["image_number"] = self._counter
         metadata["frame"] = self._counter
         metadata["output_file"] = self._writer_config["output_file"]
@@ -63,28 +70,27 @@ class Streamer:
         return metadata
 
     def start(self):
-        """Start the streamer loop.
-
-        Args:
-            io_threads (int): The size of the zmq thread pool to handle I/O operations.
-            address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
-
         """
-        _logger.debug(
-            f"RepStream.Streamer {self._name} starting to stream... "
-        )
+        Start the streamer loop.
+        """
 
         address = "tcp://*:"+(str(self._port))
+        _logger.debug(
+            f"RepStream.Streamer {self._name} starting to stream at {address}... "
+        )
+
+        
         
         # prepares the zmq socket to send out data PUB/SUB (bind)
         self._sentinel.clear()
-        zmq_context = zmq.Context(io_threads=self._io_threads)
-        zmq_socket = zmq_context.socket(self._zmq_mode)
+        # zmq_context = zmq.Context(io_threads=self._io_threads)
+        # zmq_context = 
+        zmq_socket = self._zmq_context.socket(self._zmq_mode)
         zmq_socket.setsockopt(zmq.LINGER, -1)
         try:
             zmq_socket.bind(address)
         except zmq.error.ZMQError:
-            _logger.debug(f"RepStream.Streamer socket can't bind to address.")
+            _logger.debug(f"RepStream.Streamer socket can't bind to address ({address}).")
             pass
 
         while not self._sentinel.is_set():

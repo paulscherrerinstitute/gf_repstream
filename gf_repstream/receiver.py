@@ -10,12 +10,16 @@ _logger = logging.getLogger("RestStreamRepeater")
 
 
 class Receiver:
-    def __init__(self, tuples_list, sentinel, zmq_mode, frame_block):
+    def __init__(self, tuples_list, sentinel, zmq_context, zmq_mode, frame_block):
         """Initialize a gigafrost receiver.
 
         Args:
             tuples_list: List of touples containing an Streamer class object and the send_every_nth parameter of this class.
             sentinel: Flag object to halt execution.
+            zmq_context: Zmq context
+            zmq_mode: Zmq socket mode of this receiver's stream (PUB, PULL)
+            frame_block: size of the frame's block for using send_every_nth_frame output 
+            mode
 
         """
         _logger.debug(
@@ -24,15 +28,23 @@ class Receiver:
         self._streamer_tuples = tuples_list
         self._sentinel = sentinel
         self._zmq_mode = zmq_mode
+        self._zmq_context = zmq_context
         self._frame_block = frame_block
 
     def _decode_metadata(self, metadata):
+        """
+        Method to manually add the source stream, for now, only supports gigafrost
+        """
+
         source = metadata.get("source")
         if source == 0:
             metadata["source"] = "gigafrost"
         return metadata
 
     def timePassed(self, oldtime, seconds):
+        """ 
+        Method to support the counting of time in a time-based output stream.
+        """
 
         currenttime = time.time()
         if currenttime - oldtime > seconds:
@@ -40,27 +52,26 @@ class Receiver:
         else:
             return False
 
-    def start(self, io_threads, address):
+    def start(self, address):
         """Start the receiver loop.
 
         Args:
-            io_threads (int): The size of the zmq thread pool to handle I/O operations.
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
 
         Raises:
             RuntimeError: Unknown metadata format.
         """
         _logger.debug(
-            f"GF_repstream.Receiver start (io_threads {io_threads} and address {address} (zmq mode {self._zmq_mode}))"
+            f"GF_repstream.Receiver start address {address} (zmq mode {self._zmq_mode}))"
         )
 
         # prepares the zmq socket to receive data
-        zmq_context = zmq.Context(io_threads=io_threads)
+        
         if self._zmq_mode.upper() == "SUB":
-            zmq_socket = zmq_context.socket(zmq.SUB)
+            zmq_socket = self._zmq_context.socket(zmq.SUB)
             zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
         elif self._zmq_mode.upper() == "PULL":
-            zmq_socket = zmq_context.socket(zmq.PULL)
+            zmq_socket = self._zmq_context.socket(zmq.PULL)
         else:
             raise RuntimeError(
                 "Receiver input zmq mode not recognized (SUB/PULL).")
