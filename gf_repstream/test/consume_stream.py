@@ -42,8 +42,8 @@ def main():
             data = socket.recv_multipart()
             metadata = json.loads(data[0].decode())
             total_recvs += 1
-            print(metadata['n_images'])
-            print(total_recvs, metadata['i_image'])
+            print("Total recvs: ",total_recvs)
+            print(json.dumps(metadata, sort_keys=False, indent=4))
     except KeyboardInterrupt:
         pass
         

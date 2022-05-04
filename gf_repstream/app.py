@@ -233,8 +233,8 @@ def start_rest_api(port, config_file):
                 200,
             )
 
-    @app.route("/set_writer_config", methods=["POST"])
-    def set_writer_config():
+    @app.route("/set_writer_config_rest", methods=["POST"])
+    def set_writer_config_rest():
         """POST request to set the writer configurations in the streamer.
         """
         if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR]:
@@ -375,7 +375,7 @@ if __name__ == "__main__":
         help="Log level to use.",
     )
     parser.add_argument(
-        "--config-file",
+        "--config_file",
         default="repstream_config.json",
         help="Default config file.",
     )

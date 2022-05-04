@@ -45,7 +45,7 @@ class SRepeater(object):
         self,
         in_address="tcp://xbl-daq-23:9990",
         in_zmq_mode="PULL",
-        io_threads=1,
+        io_threads=10,
         buffer_size=5000,
         n_output_streams=None,
         send_output_mode=None,
