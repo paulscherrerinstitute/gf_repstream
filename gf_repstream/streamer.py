@@ -56,6 +56,7 @@ class Streamer:
         metadata["frame"] = self._counter
         metadata["output_file"] = self._writer_config["output_file"]
         metadata["run_id"] = self._writer_config["run_id"]
+        metadata["user_id"] = self._writer_config["user_id"]
         metadata["n_images"] = self._writer_config["n_images"]
         metadata["i_image"] = self._counter
         metadata["status"] = 0
