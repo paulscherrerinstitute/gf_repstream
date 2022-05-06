@@ -3,11 +3,12 @@ import logging
 import json
 import zmq
 import time
+from systemd.journal import JournalHandler
 
 from protocol import GFHeader
 
 _logger = logging.getLogger("RestStreamRepeater")
-
+_logger.addHandler(JournalHandler())
 
 class Receiver:
     def __init__(self, tuples_list, sentinel, zmq_mode, frame_block):
@@ -26,14 +27,18 @@ class Receiver:
         self._zmq_mode = zmq_mode
         self._frame_block = frame_block
 
-    def _decode_metadata(self, metadata):
-        source = metadata.get("source")
-        if source == 0:
-            metadata["source"] = "gigafrost"
-        return metadata
-
     def timePassed(self, oldtime, seconds):
+        """_summary_
 
+        Args:
+            oldtime (float): original time
+            seconds (int): time in seconds that should be waited 
+                            until return
+
+        Returns:
+            bool: True if the time between original time and now is 
+                    greater than seconds, otherwise False
+        """
         currenttime = time.time()
         if currenttime - oldtime > seconds:
             return True

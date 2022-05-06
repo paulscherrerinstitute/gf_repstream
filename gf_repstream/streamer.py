@@ -4,11 +4,12 @@ import logging
 import time
 import zmq
 import sys
+from systemd.journal import JournalHandler
 
 from utils import valid_writer_config
 
 _logger = logging.getLogger("RestStreamRepeater")
-
+_logger.addHandler(JournalHandler())
 
 class Streamer:
     def __init__(

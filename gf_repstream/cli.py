@@ -11,6 +11,8 @@ from collections import deque
 from functools import partial
 from threading import Thread, Event
 from time import sleep
+from systemd.journal import JournalHandler
+
 
 # from gf_repstream import __version__
 from receiver import Receiver
@@ -34,6 +36,8 @@ class RepStreamError(NoTraceBackWithLineNumber):
     pass
 
 _logger = logging.getLogger("RestStreamRepeater")
+_logger.addHandler(JournalHandler())
+
 
 class SRepeater(object):
     """The multithreaded stream repeater object class that receives
@@ -43,7 +47,7 @@ class SRepeater(object):
 
     def __init__(
         self,
-        in_address="tcp://xbl-daq-23:9990",
+        in_address="tcp://xbl-daq-33:9990",
         in_zmq_mode="PULL",
         io_threads=10,
         buffer_size=5000,
@@ -178,6 +182,8 @@ class SRepeater(object):
         for key, value in dict_config.items():
             if key == "in_address":
                 self._in_address = value
+            elif key == "stream_names":
+                self._stream_names = value
             elif key == "in_zmq_mode":
                 self._in_zmq_mode = value
             elif key == "io_threads":
@@ -196,6 +202,8 @@ class SRepeater(object):
                 self._zmq_modes = value
             elif key == "config_file":
                 self._config_file = value
+            elif key == "buffer_size":
+                self._buffer_size = value
             elif key == "frame_block":
                 self._frame_block = value
         if self.validate_configuration():
