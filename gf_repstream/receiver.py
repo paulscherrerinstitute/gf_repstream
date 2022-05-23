@@ -3,12 +3,12 @@ import logging
 import json
 import zmq
 import time
-from systemd.journal import JournalHandler
+from systemd import journal
 
 from protocol import GFHeader
 
 _logger = logging.getLogger("RestStreamRepeater")
-_logger.addHandler(JournalHandler())
+_logger.addHandler(journal.JournaldLogHandler())
 
 class Receiver:
     def __init__(self, tuples_list, sentinel, zmq_mode, frame_block):

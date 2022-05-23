@@ -5,7 +5,7 @@ import argparse
 import logging
 import pkg_resources
 from enum import Enum
-
+from systemd import journal
 from cli import SRepeater
 
 __author__ = "Leonardo Hax Damiani"
@@ -23,6 +23,8 @@ class State(Enum):
 
 
 _logger = logging.getLogger("RestStreamRepeater")
+_logger.addHandler(journal.JournaldLogHandler())
+
 
 app = Flask("RestStreamRepeater")
 app.config["state"] = None
