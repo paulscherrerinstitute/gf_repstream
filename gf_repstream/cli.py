@@ -11,7 +11,7 @@ from collections import deque
 from functools import partial
 from threading import Thread, Event
 from time import sleep
-from systemd.journal import JournalHandler
+from systemd import journal
 
 
 # from gf_repstream import __version__
@@ -36,7 +36,7 @@ class RepStreamError(NoTraceBackWithLineNumber):
     pass
 
 _logger = logging.getLogger("RestStreamRepeater")
-_logger.addHandler(JournalHandler())
+_logger.addHandler(journal.JournaldLogHandler())
 
 
 class SRepeater(object):
