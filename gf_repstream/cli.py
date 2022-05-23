@@ -47,7 +47,7 @@ class SRepeater(object):
 
     def __init__(
         self,
-        in_address="tcp://xbl-daq-33:9990",
+        in_address="tcp://xbl-daq-33:9980",
         in_zmq_mode="PULL",
         io_threads=10,
         buffer_size=5000,

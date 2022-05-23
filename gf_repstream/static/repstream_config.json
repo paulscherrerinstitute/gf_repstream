@@ -20,8 +20,8 @@
         "gpu": {
             "zmq_mode": "PUB",
             "port": 9668,
-            "send_output_mode": "send_every_nth_frame",
-            "send_output_param": 10
+            "send_output_mode": "send_every_nth",
+            "send_output_param": 1
         }
     }
 }
