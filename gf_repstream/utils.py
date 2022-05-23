@@ -36,6 +36,9 @@ def validate_network_address(network_address, protocol='tcp'):
         The validated network address. If the validation failed, None is
         returned.
     """
+    # localhost
+    if 'localhost' in network_address:
+    	return True
     # ip v4 pattern with no leading zeros and values up to 255
     ip_pattern = ("(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}"
                   "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)")
