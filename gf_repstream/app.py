@@ -242,8 +242,7 @@ def start_rest_api(port, config_file):
     def set_writer_config_rest():
         """POST request to set the writer configurations in the streamer.
         """
-        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR] and 
-            app.config['std_det_output']:
+        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR] and app.config['std_det_output']:
             writer_dict = request.json
             try:
                 app.config['valid_writer_config'] = repeater.set_writer_config(writer_dict)
