@@ -85,9 +85,9 @@ class Streamer:
         try:
             zmq_socket.bind(address)
         except zmq.error.ZMQError:
-            _logger.debug(f"RepStream.Streamer socket can't bind to address.")
+            _logger.debug(f"RepStream.Streamer socket can't bind to address. {self._name} ")
             pass
-
+        counter = 0
         while not self._sentinel.is_set():
             if self._deque:
                 data = self._deque.popleft()
@@ -99,6 +99,8 @@ class Streamer:
                     )
                     zmq_socket.send(data[1], flags=0)
                 else:
+                    _logger.debug(f"{self._name} sent {counter}")
+                    counter += 1
                     zmq_socket.send_multipart(data)
                 self._counter += 1
             else:

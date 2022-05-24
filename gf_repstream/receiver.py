@@ -5,8 +5,6 @@ import zmq
 import time
 from systemd import journal
 
-from protocol import GFHeader
-
 _logger = logging.getLogger("RestStreamRepeater")
 
 class Receiver:
@@ -77,11 +75,11 @@ class Receiver:
         send_every_sec_counter = [0 for i in range(len(self._streamer_tuples))]
         while not self._sentinel.is_set():
             # receives the data
-            data = zmq_socket.recv_multipart()
             try:
+                data = zmq_socket.recv_multipart()
                 metadata = json.loads(data[0].decode())
                 image_frame = metadata["frame"]
-                print('Received:', image_frame)
+                frame_counter += 1
             except BaseException:
                 raise RuntimeError("Problem decoding the Metadata...")
 
