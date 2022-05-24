@@ -43,6 +43,20 @@ class SRepeater(object):
     """The multithreaded stream repeater object class that receives
     an incoming stream and multiplexes it into multiple outputs with
     different characteristics.
+    Args:
+            in_address (str, optional): Incoming ZMQ address. Defaults to "tcp://xbl-daq-23:9990".
+            in_zmq_mode (int, optional): Incoming ZMQ mode. Defaults to PULL.
+            io_threads (int, optional): ZMQ IO threads. Defaults to 1.
+            buffer_size (int, optional): ZMQ buffer size. Defaults to 5000.
+            n_output_streams (int, optional): Number of output streams. Defaults to None.
+            send_output_mode (list, optional): List containing the ZMQ mode of the generated output streams. Defaults to None.
+            send_output_param (list, optional): List containing the output streams configuration parameter. Defaults to None.
+            config_file (str, optional): Path to the config file. Defaults to None.
+            frame_block (int, optional): Total number of frames to create a block. Defaults to 15
+
+        Raises:
+            RuntimeError: The object can't go on if the configuration file is not defined.
+
     """
 
     def __init__(
@@ -58,22 +72,6 @@ class SRepeater(object):
         writer_config={},
         frame_block=15
     ):
-        """[summary]
-
-        Args:
-            in_address (str, optional): Incoming ZMQ address. Defaults to "tcp://xbl-daq-23:9990".
-            in_zmq_mode (int, optional): Incoming ZMQ mode. Defaults to PULL.
-            io_threads (int, optional): ZMQ IO threads. Defaults to 1.
-            buffer_size (int, optional): ZMQ buffer size. Defaults to 5000.
-            n_output_streams (int, optional): Number of output streams. Defaults to None.
-            send_output_mode (list, optional): List containing the ZMQ mode of the generated output streams. Defaults to None.
-            send_output_param (list, optional): List containing the output streams configuration parameter. Defaults to None.
-            config_file (str, optional): Path to the config file. Defaults to None.
-            frame_block (int, optional): Total number of frames to create a block. Defaults to 15
-
-        Raises:
-            RuntimeError: The object can't go on if the configuration file is not defined.
-        """
         self._in_address = in_address
         self._in_zmq_mode = in_zmq_mode
         self._io_threads = io_threads
@@ -209,7 +207,7 @@ class SRepeater(object):
         if self.validate_configuration():
             self._config_changed = True
             self.load_config()
-        return 
+        return True
 
 
     def set_config_file(self, path_config_file):
@@ -309,6 +307,11 @@ class SRepeater(object):
             self._list_threads[i].start()
         return
 
+    def is_using_std_det(self):
+        if 'std-det-writer' in self._stream_names:
+            return True
+        return False
+
     def stop(self):
         """Signal that stops the receiver and streamer threads."""
         self._exit_event.set()
@@ -335,5 +338,4 @@ class SRepeater(object):
             raise RepStreamError("n_output_streams != len(stream_names)")             
         if self._frame_block < 1 or not isinstance(self._frame_block, int):
             raise RepStreamError("Frame block size must be an integer greater than 1.")
-        
-        return 
+        return True

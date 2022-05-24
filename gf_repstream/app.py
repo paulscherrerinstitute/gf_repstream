@@ -30,6 +30,7 @@ app = Flask("RestStreamRepeater")
 app.config["state"] = None
 app.config['valid_config'] = False
 app.config['valid_writer_config'] = False
+app.config['std_det_output'] = False
 Session(app)
 
 def start_rest_api(port, config_file):
@@ -45,6 +46,7 @@ def start_rest_api(port, config_file):
     repeater = SRepeater(config_file=config_file)
     app.config['valid_config'] = True
     app.config["state"] = State.STOPPED
+    app.config['std_det_output'] = repeater.is_using_std_det()
 
     @app.route("/initialize", methods=["POST"])
     def configure():
@@ -58,7 +60,7 @@ def start_rest_api(port, config_file):
                 repeater.set_event()
                 config = repeater.load_config()
                 app.config['valid_config'] = True
-                if app.config['valid_config'] and app.config['valid_writer_config']:
+                if app.config['valid_config'] and (app.config['valid_writer_config'] or not app.config['std_det_output']):
                     app.config["state"] = State.INITIALIZED
             except BaseException as err:
                 return make_response(
@@ -149,9 +151,9 @@ def start_rest_api(port, config_file):
             dict_config = request.json
             try:
                 repeater.set_event()
-                repeater.set_config_dict(dict_config)
-                app.config['valid_config'] = True
-                if app.config['valid_config'] and app.config['valid_writer_config']:
+                app.config['valid_config'] = repeater.set_config_dict(dict_config)
+                app.config['std_det_output'] = repeater.is_using_std_det()
+                if app.config['valid_config'] and (app.config['valid_writer_config'] or not app.config['std_det_output']):
                     app.config["state"] = State.INITIALIZED
                 _logger.debug(
                     f"Service Rest Stream Repeater: set_config_from_dict {dict_config}"
@@ -198,8 +200,9 @@ def start_rest_api(port, config_file):
             try:
                 new_config_file = config_file["config_file"]
                 repeater.set_config_file(new_config_file)
+                app.config['std_det_output'] = repeater.is_using_std_det()
                 app.config['valid_config'] = True
-                if app.config['valid_config'] and app.config['valid_writer_config']:
+                if app.config['valid_config'] and (app.config['valid_writer_config'] or not app.config['std_det_output']):
                     app.config["state"] = State.INITIALIZED
                 
                 _logger.debug(
@@ -239,11 +242,12 @@ def start_rest_api(port, config_file):
     def set_writer_config_rest():
         """POST request to set the writer configurations in the streamer.
         """
-        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR]:
+        if app.config["state"] in [State.STOPPED, State.INITIALIZED, State.ERROR] and 
+            app.config['std_det_output']:
             writer_dict = request.json
             try:
                 app.config['valid_writer_config'] = repeater.set_writer_config(writer_dict)
-                if app.config['valid_writer_config'] and app.config['valid_config']:
+                if app.config['valid_config'] and (app.config['valid_writer_config'] or not app.config['std_det_output']):
                     app.config["state"] = State.INITIALIZED
                 _logger.debug(
                     f"Service Rest Stream Repeater: Writer configuration {writer_dict}"
@@ -266,17 +270,31 @@ def start_rest_api(port, config_file):
                 200,
             )
         else:
-            state_return = (app.config["state"].name, app.config["state"].value)
-            return make_response(
-                jsonify(
-                    {
-                        "response": "error",
-                        "error": f"Streamer in state {state_return[0]} can not be configured.",
-                        "state": state_return,
-                    }
-                ),
-                200,
-            )
+            if not app.config['std_det_output']:
+                state_return = (app.config["state"].name, app.config["state"].value)
+                return make_response(
+                    jsonify(
+                        {
+                            "response": "error",
+                            "error": f"Streamer has no std-det-writer stream to be configured.",
+                            "state": state_return,
+                        }
+                    ),
+                    200,
+                )
+
+            else:
+                state_return = (app.config["state"].name, app.config["state"].value)
+                return make_response(
+                    jsonify(
+                        {
+                            "response": "error",
+                            "error": f"Streamer in state {state_return[0]} can not be configured.",
+                            "state": state_return,
+                        }
+                    ),
+                    200,
+                )
 
     @app.route("/start", methods=["POST"])
     def start_streamer():
@@ -285,7 +303,7 @@ def start_rest_api(port, config_file):
         Returns:
             HTTP response with status of the request and the state of the stream repeater object.
         """
-        if app.config["state"] == State.INITIALIZED and app.config['valid_writer_config'] and app.config['valid_config']:
+        if app.config["state"] == State.INITIALIZED and (app.config['valid_writer_config']  or not app.config['std_det_output']) and app.config['valid_config']: 
             try:
                 _logger.debug(f"Service Rest Stream Repeater: starting...")
                 repeater.start()
@@ -334,6 +352,7 @@ def start_rest_api(port, config_file):
                 repeater.stop()
                 app.config["state"] = State.STOPPED
                 app.config['valid_writer_config'] = False
+                app.config['std_det_output'] = False
                 app.config['valid_config'] = False
             except BaseException as err:
                 app.config["state"] = State.ERROR
