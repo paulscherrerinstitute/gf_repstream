@@ -11,15 +11,9 @@
             "send_output_mode": "send_every_nth",
             "send_output_param": 1
         },
-        "std-det-writer": {
-            "zmq_mode": "PUB",
-            "port": 9667,
-            "send_output_mode": "send_every_nth",
-            "send_output_param": 1
-        },
         "gpu": {
             "zmq_mode": "PUB",
-            "port": 9668,
+            "port": 9667,
             "send_output_mode": "send_every_nth",
             "send_output_param": 1
         }

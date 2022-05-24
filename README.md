@@ -1,10 +1,13 @@
 [![Conda](https://img.shields.io/conda/pn/paulscherrerinstitute/gf_repstream?color=success)](https://anaconda.org/paulscherrerinstitute/gf_repstream)  [![GitHub](https://img.shields.io/github/license/paulscherrerinstitute/gf_repstream)](https://github.com/paulscherrerinstitute/gf_repstream/blob/master/LICENSE) ![GitHub Release Date](https://img.shields.io/github/release-date/paulscherrerinstitute/gf_repstream) ![conda_publish](https://github.com/paulscherrerinstitute/gf_repstream/workflows/conda_publish/badge.svg)
 
 <!-- ABOUT THE PROJECT -->
-## GF_REPSTREAM
+## ZMQ_REPSTREAM
 This is a tool to receive an incoming ZMQ stream, treat it (optional), and stream it to multiple clients/external components. It works controlled via a REST api that allows the user to configure and control it.
 
-NOTE: The default mode assumes that one stream is directed to the [std-det-writer](https://github.com/paulscherrerinstitute/sf_daq_buffer/tree/eiger/std-det-writer) for saving the incoming stream, it is necessary to also configure the writer details (outputfile, number of images, etc...)
+-----
+** NOTE ** 
+
+A optional mode allows one to prepare a stream directed to the [std-det-writer](https://github.com/paulscherrerinstitute/sf_daq_buffer/tree/eiger/std-det-writer) for saving the incoming stream, it is necessary to also configure the writer details (outputfile, number of images, etc...)
 
 The fake gigafrost stream generator was done inspired in [mflow](https://github.com/paulscherrerinstitute/mflow)
 
