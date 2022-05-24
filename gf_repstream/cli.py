@@ -36,7 +36,6 @@ class RepStreamError(NoTraceBackWithLineNumber):
     pass
 
 _logger = logging.getLogger("RestStreamRepeater")
-_logger.addHandler(journal.JournaldLogHandler())
 
 
 class SRepeater(object):

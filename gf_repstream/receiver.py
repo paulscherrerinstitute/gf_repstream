@@ -8,7 +8,6 @@ from systemd import journal
 from protocol import GFHeader
 
 _logger = logging.getLogger("RestStreamRepeater")
-_logger.addHandler(journal.JournaldLogHandler())
 
 class Receiver:
     def __init__(self, tuples_list, sentinel, zmq_mode, frame_block):
@@ -82,6 +81,7 @@ class Receiver:
             try:
                 metadata = json.loads(data[0].decode())
                 image_frame = metadata["frame"]
+                print('Received:', image_frame)
             except BaseException:
                 raise RuntimeError("Problem decoding the Metadata...")
 

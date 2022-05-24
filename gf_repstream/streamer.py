@@ -9,7 +9,6 @@ from systemd import journal
 from utils import valid_writer_config
 
 _logger = logging.getLogger("RestStreamRepeater")
-_logger.addHandler(journal.JournaldLogHandler())
 
 class Streamer:
     def __init__(
