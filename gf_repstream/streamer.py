@@ -4,6 +4,7 @@ import logging
 import time
 import zmq
 import sys
+import json
 from systemd import journal
 
 from utils import valid_writer_config
@@ -99,7 +100,9 @@ class Streamer:
                     )
                     zmq_socket.send(data[1], flags=0)
                 else:
-                    _logger.debug(f"{self._name} sent {counter}")
+                    #_logger.debug(f"{self._name} sent {counter}")
+                    img_frame = json.loads(data[0].decode())["frame"]
+                    #_logger.debug(f"{self._name} send frame {img_frame}")
                     counter += 1
                     zmq_socket.send_multipart(data)
                 self._counter += 1

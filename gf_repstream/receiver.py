@@ -57,7 +57,7 @@ class Receiver:
         )
 
         # prepares the zmq socket to receive data
-        zmq_context = zmq.Context(io_threads=io_threads)
+        zmq_context = zmq.Context(io_threads=5)
         if self._zmq_mode.upper() == "SUB":
             zmq_socket = zmq_context.socket(zmq.SUB)
             zmq_socket.setsockopt_string(zmq.SUBSCRIBE, u"")
@@ -79,6 +79,7 @@ class Receiver:
                 data = zmq_socket.recv_multipart()
                 metadata = json.loads(data[0].decode())
                 image_frame = metadata["frame"]
+                _logger.debug(f"RepStream.Receiver received frame: {image_frame}")
                 frame_counter += 1
             except BaseException:
                 raise RuntimeError("Problem decoding the Metadata...")

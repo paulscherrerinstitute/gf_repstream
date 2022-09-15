@@ -2,7 +2,7 @@
     "in-stream": {
         "name": "in_backend",
         "zmq_mode": "PULL",
-        "address": "tcp://192.168.10.229:9980"
+        "address": "tcp://192.168.10.148:9980"
     },
     "out-streams": {
         "writer-libdetxr": {
@@ -11,8 +11,8 @@
             "send_output_mode": "send_every_nth",
             "send_output_param": 1
         },
-        "gpu": {
-            "zmq_mode": "PUB",
+	"gpu": {
+            "zmq_mode": "PUSH",
             "port": 9667,
             "send_output_mode": "send_every_nth",
             "send_output_param": 1
