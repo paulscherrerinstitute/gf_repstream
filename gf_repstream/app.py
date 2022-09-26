@@ -338,6 +338,12 @@ def start_rest_api(port, config_file):
                 200,
             )
 
+    @app.route("/alive", methods=["GET"])
+    def alive():
+        """ GET request to verify if the rest api is up
+        """
+        return make_response(jsonify({"response":"success"}), 200)
+
     @app.route("/stop", methods=["POST"])
     def stop_streamer():
         """POST request to stop the stream repeater object.
